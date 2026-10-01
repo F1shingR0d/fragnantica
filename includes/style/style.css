@@ -1,0 +1,59 @@
+/*style.css*/
+body {
+    margin: 0px;
+    padding: 0px;
+    font-family: Georgia, "Times New Roman", Times, serif;
+}
+
+h1, h2, h3 {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+}
+
+/* product list on the home page */
+ul.products {
+    padding: 0;
+    margin: 0 auto;
+    max-width: 1000px;
+    text-align: center;
+}
+
+ul.products li {
+    display: inline-block;
+    vertical-align: top;
+    width: 210px;
+    padding: 10px;
+    background-color: #FFFFFF;
+    margin: 10px;
+    border: 1px solid #EAEAEA;
+    color: #3D3D3D;
+}
+
+ul.products li h3 {
+    margin: -10px -10px 10px -10px;
+    padding: 10px;
+    text-align: center;
+    background-color: #F5F5F5;
+    font-size: 1.1em;
+    color: #5A5A5A;
+}
+
+.product-thumb {
+    text-align: center;
+}
+
+.product-thumb img, .perfume-photo {
+    object-fit: contain;
+}
+
+.product-info p {
+    margin: 4px 0;
+}
+
+.product-info .brand {
+    font-weight: bold;
+}
+
+.product-info .price {
+    color: #8B1E3F;
+    font-size: 1.1em;
+}
