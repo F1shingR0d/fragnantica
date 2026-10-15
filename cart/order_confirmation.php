@@ -100,9 +100,8 @@ include('../includes/header.php');
                 </tfoot>
             </table>
 
-            <div class="d-flex justify-content-between mt-4">
+            <div class="mt-4">
                 <a href="../index.php" class="btn btn-secondary">Continue Shopping</a>
-                <a href="orders.php" class="btn btn-primary"><i class="fa-solid fa-box me-1"></i> View All Orders</a>
             </div>
         </div>
     </div>

@@ -43,9 +43,7 @@
                     }
 
                     if (isset($_SESSION['role']) && $_SESSION['role'] === 'customer') {
-                        echo '<li class="nav-item"><a class="nav-link" href="/Fragnantica/cart/index.php"><i class="fa-solid fa-cart-shopping"></i> Cart</a></li>';
-                        echo '<li class="nav-item"><a class="nav-link" href="/Fragnantica/cart/orders.php"><i class="fa-solid fa-box"></i> My Orders</a></li>';
-                    }
+                        echo '<li class="nav-item"><a class="nav-link" href="/Fragnantica/cart/index.php"><i class="fa-solid fa-cart-shopping"></i> Cart</a></li>';                    }
                     ?>
                 </ul>
                 <form action="/Fragnantica/index.php" method="GET" class="d-flex" role="search">

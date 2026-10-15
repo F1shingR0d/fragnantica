@@ -34,7 +34,7 @@ include('../includes/header.php');
             <thead>
                 <tr>
                     <th>Photo</th><th>Product</th><th>Price</th>
-                    <th>Qty</th><th>Subtotal</th><th></th>
+                    <th>Qty</th><th>Subtotal</th>
                 </tr>
             </thead>
             <tbody>
@@ -55,12 +55,6 @@ include('../includes/header.php');
                     <td>&#8369; " . number_format($row['sell_price'], 2) . "</td>
                     <td>{$row['quantity']}{$warning}</td>
                     <td>&#8369; " . number_format($lineTotal, 2) . "</td>
-                    <td>
-                        <form action='remove.php' method='POST'>
-                            <input type='hidden' name='product_id' value='{$row['product_id']}'>
-                            <button type='submit' name='submit' class='btn btn-outline-danger btn-sm'>Remove</button>
-                        </form>
-                    </td>
                 </tr>";
             }
             ?>
@@ -68,7 +62,7 @@ include('../includes/header.php');
             <tfoot>
                 <tr>
                     <th colspan="4" class="text-end">Total</th>
-                    <th colspan="2">&#8369; <?= number_format($grandTotal, 2) ?></th>
+                    <th>&#8369; <?= number_format($grandTotal, 2) ?></th>
                 </tr>
             </tfoot>
         </table>

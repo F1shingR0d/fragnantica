@@ -3,11 +3,10 @@ session_start();
 include('./includes/config.php');
 include('./includes/header.php');
 
-// search by product name, brand or category, and/or show only one category
+// search by product name, brand or category
 $keyword = isset($_GET['search']) ? trim($_GET['search']) : '';
-$categoryId = filter_input(INPUT_GET, 'category', FILTER_VALIDATE_INT);
 
-// "WHERE 1=1" is always true, so the filters below can simply add "AND ..."
+// "WHERE 1=1" is always true, so the search below can simply add "AND ..."
 $sql = "SELECT p.product_id, p.name, p.brand, p.scent_type, p.size, p.unit, p.description, p.sell_price, p.img_path,
             c.name AS category, s.quantity AS stock
         FROM product p
@@ -16,10 +15,6 @@ $sql = "SELECT p.product_id, p.name, p.brand, p.scent_type, p.size, p.unit, p.de
         WHERE 1=1";
 $params = [];
 
-if ($categoryId) {
-    $sql .= " AND p.category_id = ?";
-    $params[] = $categoryId;
-}
 if ($keyword !== '') {
     $sql .= " AND (p.name LIKE ? OR p.brand LIKE ? OR c.name LIKE ?)";
     $params[] = "%{$keyword}%";
@@ -31,31 +26,11 @@ $sql .= " ORDER BY p.product_id DESC";
 $result = mysqli_execute_query($conn, $sql, $params);
 $productCount = mysqli_num_rows($result);
 
-// category buttons
-$categories = mysqli_query($conn, "SELECT category_id, name FROM category ORDER BY category_id");
-
 ?>
 <div class="container mt-3">
     <?php include('./includes/alert.php'); ?>
 </div>
 <h1 align="center">Fragrance &amp; Scent Products</h1>
-
-<div class="text-center mb-3 px-3">
-    <?php
-    if ($categoryId) {
-        echo "<a href='index.php' class='btn btn-sm btn-outline-secondary m-1'>All</a>";
-    } else {
-        echo "<a href='index.php' class='btn btn-sm btn-secondary m-1'>All</a>";
-    }
-    while ($cat = mysqli_fetch_assoc($categories)) {
-        if ($categoryId == $cat['category_id']) {
-            echo "<a href='index.php?category={$cat['category_id']}' class='btn btn-sm btn-secondary m-1'>{$cat['name']}</a>";
-        } else {
-            echo "<a href='index.php?category={$cat['category_id']}' class='btn btn-sm btn-outline-secondary m-1'>{$cat['name']}</a>";
-        }
-    }
-    ?>
-</div>
 
 <?php
 if ($keyword !== '') {
@@ -105,7 +80,7 @@ EOT;
 
     $products_item .= '</ul>';
     echo $products_item;
-} else if ($keyword !== '' || $categoryId) {
+} else if ($keyword !== '') {
     echo "<p align='center'>No products found.</p>";
 } else {
     echo "<p align='center'>No products available yet.</p>";
