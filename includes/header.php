@@ -33,8 +33,10 @@
                     <?php
                     // admin-only links
                     if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+                        echo '<li class="nav-item"><a class="nav-link" href="/Fragnantica/admin/index.php"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>';
                         echo '<li class="nav-item"><a class="nav-link" href="/Fragnantica/product/index.php">Products</a></li>';
                         echo '<li class="nav-item"><a class="nav-link" href="/Fragnantica/product/create.php">Add Product</a></li>';
+                        echo '<li class="nav-item"><a class="nav-link" href="/Fragnantica/order/index.php"><i class="fa-solid fa-receipt"></i> Orders</a></li>';
                     }
 
                     // links for any logged in user
@@ -43,7 +45,8 @@
                     }
 
                     if (isset($_SESSION['role']) && $_SESSION['role'] === 'customer') {
-                        echo '<li class="nav-item"><a class="nav-link" href="/Fragnantica/cart/index.php"><i class="fa-solid fa-cart-shopping"></i> Cart</a></li>';                    }
+                        echo '<li class="nav-item"><a class="nav-link" href="/Fragnantica/cart/index.php"><i class="fa-solid fa-cart-shopping"></i> Cart</a></li>';
+                    }
                     ?>
                 </ul>
                 <form action="/Fragnantica/index.php" method="GET" class="d-flex" role="search">
@@ -58,10 +61,17 @@
                         <a href='/Fragnantica/user/register.php' class='nav-item nav-link'>Register</a></div>";
                 } else {
                     echo "<div class='navbar-nav ms-auto'>
-                        <span class='nav-item nav-link'><i class='fa-solid fa-user'></i> {$_SESSION['name']}</span>
+                        <span class='nav-item nav-link'><i class='fa-solid fa-user'></i> " . htmlspecialchars($_SESSION['name'], ENT_QUOTES, 'UTF-8') . "</span>
                         <a href='/Fragnantica/user/logout.php' class='nav-item nav-link'>Logout</a></div>";
                 }
                 ?>
             </div>
         </div>
     </nav>
+    <?php if (!empty($_SESSION['default_password'])): ?>
+        <div class="alert alert-danger rounded-0 mb-0 text-center py-2" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+            <strong>Your admin password is the published default.</strong> Anyone could log in as you.
+            <a href="/Fragnantica/user/profile.php" class="alert-link">Change it now</a>.
+        </div>
+    <?php endif; ?>
