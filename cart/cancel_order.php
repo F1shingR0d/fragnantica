@@ -8,13 +8,13 @@ require_customer();
 
 // only accept the form (POST), never a link
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: ../index.php");
+    header("Location: orders.php");
     exit();
 }
 
 $order_id = filter_input(INPUT_POST, 'order_id', FILTER_VALIDATE_INT);
 if (!$order_id) {
-    header("Location: ../index.php");
+    header("Location: orders.php");
     exit();
 }
 

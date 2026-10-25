@@ -9,7 +9,7 @@ $user_id = $_SESSION['user_id'];
 $order_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
 if (!$order_id) {
-    header("Location: ../index.php");
+    header("Location: orders.php");
     exit();
 }
 
@@ -23,7 +23,7 @@ $order = mysqli_fetch_assoc($orderResult);
 
 if (!$order) {
     $_SESSION['message'] = 'Order not found.';
-    header("Location: ../index.php");
+    header("Location: orders.php");
     exit();
 }
 
@@ -146,6 +146,7 @@ include('../includes/header.php');
             <?php endif; ?>
 
             <div class="d-flex flex-wrap justify-content-between gap-2 mt-4">
+                <a href="orders.php" class="btn btn-secondary"><i class="fa-solid fa-box me-1"></i> All My Orders</a>
                 <a href="../order/receipt.php?id=<?= (int)$order['order_id'] ?>" target="_blank" class="btn btn-outline-secondary">
                     <i class="fa-regular fa-file-pdf me-1"></i> Receipt (PDF)</a>
                 <?php if ($canCancel): ?>

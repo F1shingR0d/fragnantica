@@ -12,7 +12,7 @@ $order = $order_id ? mysqli_fetch_assoc(mysqli_execute_query($conn,
 
 if (!$order || (!is_admin() && (int)$order['user_id'] !== (int)$_SESSION['user_id'])) {
     $_SESSION['message'] = 'Order not found.';
-    header('Location: ' . (is_admin() ? 'index.php' : '../index.php'));
+    header('Location: ' . (is_admin() ? 'index.php' : '../cart/orders.php'));
     exit();
 }
 
