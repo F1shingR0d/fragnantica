@@ -91,6 +91,7 @@ include('../includes/header.php');
             <a href="../index.php" class="btn btn-secondary">Continue shopping</a>
             <a href="checkout.php" class="btn btn-primary">Proceed to Checkout</a>
         </div>
+        <p class="small text-muted text-end mt-2"><i class="fa-solid fa-ticket me-1"></i> Have a coupon code? You can enter it at checkout.</p>
     <?php } ?>
 </div>
 <?php include('../includes/footer.php'); ?>

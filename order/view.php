@@ -93,6 +93,11 @@ include('../includes/header.php');
                         <?php endforeach; ?>
                         </tbody>
                         <tfoot class="table-light">
+                            <?php if ((float)$order['discount_amount'] > 0): ?>
+                                <tr><td colspan="3" class="text-end">Items total</td><td colspan="2"><?= peso($order['items_total']) ?></td></tr>
+                                <tr class="text-success"><td colspan="3" class="text-end">Coupon <strong class="font-monospace"><?= e($order['coupon_code']) ?></strong></td>
+                                    <td colspan="2">&minus; <?= peso($order['discount_amount']) ?></td></tr>
+                            <?php endif; ?>
                             <tr><th colspan="3" class="text-end">Grand Total</th><th colspan="2"><?= peso($order['grand_total']) ?></th></tr>
                         </tfoot>
                     </table>

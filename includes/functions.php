@@ -7,6 +7,7 @@ require_once __DIR__ . '/settings.php';
 require_once __DIR__ . '/mail.php';
 require_once __DIR__ . '/uploads.php';
 require_once __DIR__ . '/profanity.php';
+require_once __DIR__ . '/coupons.php';
 
 // ---------------------------------------------------------------
 // login and access control

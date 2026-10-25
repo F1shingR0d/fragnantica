@@ -23,8 +23,11 @@ $previous = one_row($conn, "SELECT COALESCE(SUM(total_amount), 0) AS amount
 $collected = one_row($conn, "SELECT COALESCE(SUM(total_amount), 0) AS amount
                              FROM orders
                              WHERE payment_status = 'paid' AND paid_at >= NOW() - INTERVAL 30 DAY");
-// profit uses the cost saved with each order line (older lines fall back to today's cost)
-$profit = one_row($conn, "SELECT COALESCE(SUM((oi.price - COALESCE(oi.cost, p.cost_price)) * oi.quantity), 0) AS amount
+// profit uses the cost saved with each order line (older lines fall back to today's cost),
+// minus what coupons took off those orders
+$profit = one_row($conn, "SELECT COALESCE(SUM((oi.price - COALESCE(oi.cost, p.cost_price)) * oi.quantity), 0)
+                                 - (SELECT COALESCE(SUM(discount_amount), 0) FROM orders
+                                    WHERE status <> 'cancelled' AND created_at >= NOW() - INTERVAL 30 DAY) AS amount
                           FROM order_items oi
                           INNER JOIN orders o USING (order_id)
                           INNER JOIN product p USING (product_id)

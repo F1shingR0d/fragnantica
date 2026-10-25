@@ -9,6 +9,39 @@ require_customer();
 $user_id = $_SESSION['user_id'];
 $methods = payment_methods();
 
+// the items total of the customer's cart, at today's prices
+function cart_items_total($conn, $user_id)
+{
+    $sql = "SELECT COALESCE(SUM(c.quantity * p.sell_price), 0) AS total FROM cart c INNER JOIN product p USING (product_id) WHERE c.user_id = ?";
+    return (float)mysqli_fetch_assoc(mysqli_execute_query($conn, $sql, [$user_id]))['total'];
+}
+
+// Apply or remove a coupon (POST). The code is kept in the session until the order is placed.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['apply_coupon']) || isset($_POST['remove_coupon']))) {
+    if (!csrf_valid()) {
+        $_SESSION['message'] = 'Your session expired. Please try again.';
+    } else if (isset($_POST['remove_coupon'])) {
+        unset($_SESSION['coupon_code']);
+        $_SESSION['success'] = 'The coupon was removed.';
+    } else {
+        $code = normalize_coupon_code(post_value('coupon_code'));
+        if ($code === '') {
+            keep_form('coupon', array('coupon_code' => 'Please enter a coupon code.'), array('coupon_code' => ''));
+        } else {
+            $coupon = find_coupon($conn, $code);
+            $error = coupon_error($conn, $coupon, $user_id, cart_items_total($conn, $user_id));
+            if ($error !== '') {
+                keep_form('coupon', array('coupon_code' => $error), array('coupon_code' => $code));
+            } else {
+                $_SESSION['coupon_code'] = $coupon['code'];
+                $_SESSION['success'] = 'Coupon ' . e($coupon['code']) . ' applied: ' . coupon_label($coupon) . '.';
+            }
+        }
+    }
+    header("Location: checkout.php");
+    exit();
+}
+
 // Handle order placement (POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
     if (!csrf_valid()) {
@@ -80,14 +113,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
 
             $grandTotal += $item['sell_price'] * $requestedQty;
         }
+        $itemsTotal = $grandTotal;
 
-        // 3. Create the order. It starts as pending and unpaid; the admin moves it along from there.
-        $orderSql = "INSERT INTO orders (user_id, total_amount, status, shipping_address, payment_method, payment_status, created_at)
-                     VALUES (?, ?, 'pending', ?, ?, 'unpaid', NOW())";
-        mysqli_execute_query($conn, $orderSql, [$user_id, $grandTotal, $shipping_address, $payment_method]);
+        // 3. Check the coupon again (the cart or the coupon may have changed since it was applied).
+        //    Its row is locked, so a coupon with limited uses cannot be used more times than allowed.
+        $coupon_id = null;
+        $discount = 0.0;
+        if (!empty($_SESSION['coupon_code'])) {
+            $coupon = find_coupon($conn, $_SESSION['coupon_code'], true);
+            $error = coupon_error($conn, $coupon, $user_id, $itemsTotal);
+            if ($error !== '') {
+                mysqli_rollback($conn);
+                unset($_SESSION['coupon_code']);
+                $_SESSION['message'] = 'Your coupon was removed: ' . $error . ' Please review your order and place it again.';
+                header("Location: checkout.php");
+                exit();
+            }
+            $coupon_id = (int)$coupon['coupon_id'];
+            $discount = coupon_discount($coupon, $itemsTotal);
+            $grandTotal = $itemsTotal - $discount;
+        }
+
+        // 4. Create the order. It starts as pending and unpaid; the admin moves it along from there.
+        $orderSql = "INSERT INTO orders (user_id, total_amount, coupon_id, discount_amount, status, shipping_address, payment_method, payment_status, created_at)
+                     VALUES (?, ?, ?, ?, 'pending', ?, ?, 'unpaid', NOW())";
+        mysqli_execute_query($conn, $orderSql, [$user_id, $grandTotal, $coupon_id, $discount, $shipping_address, $payment_method]);
         $order_id = mysqli_insert_id($conn);
 
-        // 4. Insert order_items and deduct stock
+        // 5. Insert order_items and deduct stock
         $itemInsertSql = "INSERT INTO order_items (order_id, product_id, quantity, price, cost) VALUES (?, ?, ?, ?, ?)";
         $itemInsertStmt = mysqli_prepare($conn, $itemInsertSql);
 
@@ -107,15 +160,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
             mysqli_stmt_execute($deductStockStmt);
         }
 
-        // 5. First line of the order's history
-        record_status($conn, $order_id, 'pending', 'Order placed (' . payment_label($payment_method) . ')', $user_id);
+        // 6. First line of the order's history
+        $placedNote = 'Order placed (' . payment_label($payment_method) . ')';
+        if ($coupon_id !== null) {
+            $placedNote .= ' with coupon ' . $coupon['code'];
+        }
+        record_status($conn, $order_id, 'pending', $placedNote, $user_id);
 
-        // 6. Empty the customer's cart
+        // 7. Empty the customer's cart
         $clearCartSql = "DELETE FROM cart WHERE user_id = ?";
         mysqli_execute_query($conn, $clearCartSql, [$user_id]);
 
-        // 7. COMMIT the transaction
+        // 8. COMMIT the transaction
         mysqli_commit($conn);
+        unset($_SESSION['coupon_code']);
     } catch (mysqli_sql_exception $e) {
         mysqli_rollback($conn);
         $_SESSION['message'] = 'Checkout failed due to a database error. Please try again.';
@@ -123,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
         exit();
     }
 
-    // 8. the order is saved; now email the customer (a failed email does not undo the order)
+    // 9. the order is saved; now email the customer (a failed email does not undo the order)
     notify_order_placed($conn, $order_id);
 
     $_SESSION['success'] = "Order #{$order_id} placed successfully! A confirmation has been sent to your email.";
@@ -166,6 +224,24 @@ foreach ($cartItems as $item) {
         $hasStockIssue = true;
     }
 }
+$itemsTotal = $grandTotal;
+
+// the applied coupon, checked again because the cart may have changed since it was applied
+$appliedCoupon = null;
+$discount = 0.0;
+if (!empty($_SESSION['coupon_code'])) {
+    $coupon = find_coupon($conn, $_SESSION['coupon_code']);
+    $couponError = coupon_error($conn, $coupon, $user_id, $itemsTotal);
+    if ($couponError !== '') {
+        unset($_SESSION['coupon_code']);
+        $_SESSION['message'] = 'Your coupon was removed: ' . $couponError;
+    } else {
+        $appliedCoupon = $coupon;
+        $discount = coupon_discount($coupon, $itemsTotal);
+        $grandTotal = $itemsTotal - $discount;
+    }
+}
+list($couponErrors, $couponOld) = take_form('coupon');
 
 include('../includes/header.php');
 ?>
@@ -213,6 +289,16 @@ include('../includes/header.php');
                         <?php endforeach; ?>
                         </tbody>
                         <tfoot class="table-light">
+                            <?php if ($appliedCoupon): ?>
+                                <tr>
+                                    <td colspan="3" class="text-end">Items total:</td>
+                                    <td><?= peso($itemsTotal) ?></td>
+                                </tr>
+                                <tr class="text-success">
+                                    <td colspan="3" class="text-end">Coupon <strong class="font-monospace"><?= e($appliedCoupon['code']) ?></strong> (<?= coupon_label($appliedCoupon) ?>):</td>
+                                    <td>&minus; <?= peso($discount) ?></td>
+                                </tr>
+                            <?php endif; ?>
                             <tr>
                                 <th colspan="3" class="text-end">Total:</th>
                                 <th><?= peso($grandTotal) ?></th>
@@ -245,6 +331,34 @@ include('../includes/header.php');
                         <a href="../user/profile.php" class="btn btn-primary w-100">
                             Complete Delivery Details
                         </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header"><strong><i class="fa-solid fa-ticket me-1"></i> Coupon</strong></div>
+                <div class="card-body">
+                    <?php if ($appliedCoupon): ?>
+                        <form action="checkout.php" method="POST" class="d-flex justify-content-between align-items-center gap-2">
+                            <?= csrf_field() ?>
+                            <div>
+                                <strong class="font-monospace"><?= e($appliedCoupon['code']) ?></strong>
+                                <span class="badge bg-success ms-1"><?= coupon_label($appliedCoupon) ?></span>
+                                <br><small class="text-muted">You save <?= peso($discount) ?></small>
+                            </div>
+                            <button type="submit" name="remove_coupon" class="btn btn-sm btn-outline-secondary">Remove</button>
+                        </form>
+                    <?php else: ?>
+                        <form action="checkout.php" method="POST" novalidate>
+                            <?= csrf_field() ?>
+                            <label for="coupon_code" class="form-label small">Have a coupon code?</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control text-uppercase font-monospace<?= invalid_class($couponErrors, 'coupon_code') ?>"
+                                    id="coupon_code" name="coupon_code" value="<?= e($couponOld['coupon_code'] ?? '') ?>" placeholder="Enter code">
+                                <button type="submit" name="apply_coupon" class="btn btn-outline-primary">Apply</button>
+                            </div>
+                            <?= field_error($couponErrors, 'coupon_code') ?>
+                        </form>
                     <?php endif; ?>
                 </div>
             </div>

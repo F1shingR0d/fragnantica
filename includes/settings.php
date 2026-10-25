@@ -5,6 +5,12 @@
 // the computer's clock, so set it here to keep PHP times in step with the database
 date_default_timezone_set('Asia/Manila');
 
+// the name of the store, shown in the navbar, page titles, emails and receipts
+define('STORE_NAME', 'Veloura');
+
+// where customers can contact the store; replies to the store's emails go here
+define('STORE_EMAIL', 'oanesrodrigo88@gmail.com');
+
 // the address of the store, used in links inside emails (no slash at the end)
 // change this when the site is moved to a real domain
 define('APP_URL', 'http://localhost/Fragnantica');
@@ -29,8 +35,8 @@ defined('SMTP_ENCRYPTION') || define('SMTP_ENCRYPTION', 'tls'); // 'tls' (STARTT
 defined('SMTP_USERNAME') || define('SMTP_USERNAME', '');
 defined('SMTP_PASSWORD') || define('SMTP_PASSWORD', '');
 
-defined('MAIL_FROM') || define('MAIL_FROM', 'no-reply@fragrancestore.test');
-defined('MAIL_FROM_NAME') ||define('MAIL_FROM_NAME', 'Fragrance & Scent Store');
+defined('MAIL_FROM') || define('MAIL_FROM', 'no-reply@veloura.test');
+defined('MAIL_FROM_NAME') || define('MAIL_FROM_NAME', STORE_NAME);
 
 // products at or below this quantity show up as "low stock" on the admin dashboard
 define('LOW_STOCK_THRESHOLD', 5);

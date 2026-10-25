@@ -3,12 +3,15 @@
 The store sends emails for: order received, every order status change, password reset links,
 and "your password was changed" notices.
 
-Order emails list every product with its price, quantity and subtotal, plus the grand total,
-and carry the **PDF receipt** of the transaction as an attachment.
+Order emails list every product with its price, quantity and subtotal, any coupon discount,
+plus the grand total, and carry the **PDF receipt** of the transaction as an attachment.
 
 Emails go through [Mailtrap](https://mailtrap.io). Its Email Testing sandbox catches every email
 in a test inbox, so nothing reaches a real customer. The store talks to Mailtrap over SMTP with
 its own small client (`includes/smtp.php`), so there is nothing to install.
+
+Emails are sent as **Veloura** from `no-reply@veloura.test`. Replies go to the store's contact
+address, `STORE_EMAIL` in `includes/settings.php`.
 
 ## 1. Get your Mailtrap login
 
@@ -18,8 +21,8 @@ its own small client (`includes/smtp.php`), so there is nothing to install.
 
 ## 2. Put them in the store
 
-Copy `includes/mail_config.example.php` to `includes/mail_config.php` and fill in your username
-and password:
+Open `includes/mail_config.php` (if it is not there, copy `includes/mail_config.example.php`
+to that name) and fill in your username and password:
 
 ```php
 define('SMTP_HOST', 'sandbox.smtp.mailtrap.io');

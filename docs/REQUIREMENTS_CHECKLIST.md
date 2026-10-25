@@ -4,7 +4,7 @@ Where each requirement of the TIM211 Information Management (1st Term 2026) rubr
 implemented, and how to show it during checking.
 
 **Before the demo:** import `database.sql` (fresh install) or run `migrations/003_users_photos_reviews_views.sql`
-(keeps your data), open `setup.php` to create the admin, and set up Mailtrap (`docs/EMAIL_SETUP.md`).
+and `migrations/004_coupons.sql` (keeps your data), open `setup.php` to create the admin, and set up Mailtrap (`docs/EMAIL_SETUP.md`).
 
 ---
 
@@ -94,17 +94,18 @@ part of a key (no partial dependencies). Repeating data lives in its own table:
 | `product_images` | extra photos, many per product |
 | `stock` | quantity on hand, one row per product |
 | `cart` | cart lines, `UNIQUE (user_id, product_id)` |
-| `orders` | one row per order |
+| `coupon` | discount coupons: code, percent or fixed amount, minimum order, uses allowed, valid dates |
+| `orders` | one row per order, with the coupon used and the discount it gave |
 | `order_items` | the products in each order; price and cost are kept as they were at checkout |
 | `order_status_history` | every status change of an order |
 | `review` | one review per customer per product |
 | `password_resets` | password reset requests |
 
-**MySQL VIEWS for the order transaction details** (`database.sql` and `migrations/003`):
+**MySQL VIEWS for the order transaction details** (`database.sql`, `migrations/003` and `004`):
 
 * `order_details_view`: one row per product in an order, with product name, brand, size, quantity, price and **subtotal**.
-* `order_totals_view`: per order, the number of items, units and the **grand total**.
-* `order_summary_view`: each order with its customer and its totals.
+* `order_totals_view`: per order, the number of items, units and the items total.
+* `order_summary_view`: each order with its customer, coupon code, items total, discount and **grand total**.
 
 The views are used by the admin order list and order page, the customer's order list and order
 page, the order emails, the PDF receipt and the review check.
@@ -121,6 +122,18 @@ page, the order emails, the PDF receipt and the review check.
 `index.php`: a large search box at the top of the home page (plus the one in the navbar).
 It searches product name, brand, category, scent type and description, works together with the
 brand, scent, price and stock filters, and shows "Showing 1-n of N products for ...".
+
+## Extra: discount coupons
+
+| Feature | Where | How to show it |
+|---|---|---|
+| Admin coupon CRUD | `admin/coupons/`: `index.php` (list with uses and total discount), `create.php`/`store.php`, `edit.php`/`update.php`, `status.php` (activate/deactivate), `delete.php` | Admin > Coupons |
+| Coupon rules | `includes/coupons.php`: percent or fixed amount, minimum order, total uses allowed, valid from/until, one use per customer; cancelled orders give the use back | Try an expired code, or one below its minimum order |
+| Customers use a coupon | `cart/checkout.php` > Coupon box. The coupon is checked again when the order is placed, inside the checkout transaction with the coupon row locked | Checkout: enter `WELCOME10` (10% off orders of ₱500 or more) |
+| Discount on the order | `orders.coupon_id`, `orders.discount_amount`; shown on the order pages, in the emails and on the PDF receipt | Order confirmation, Admin > Orders > Manage |
+
+Used coupons cannot be deleted (their orders keep the record); deactivate them instead.
+Coupon forms are validated in PHP only (`novalidate`), like the other forms.
 
 ## Term Test Lecture
 

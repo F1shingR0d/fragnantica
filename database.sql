@@ -1,10 +1,10 @@
--- Online Fragrance & Scent Products Store
--- Database: users, customer, category, product, product_images, stock, cart, orders, order_items,
---           order_status_history, password_resets, review
+-- Veloura: online fragrance & scent products store
+-- Database: users, customer, category, product, product_images, stock, cart, coupon, orders,
+--           order_items, order_status_history, password_resets, review
 -- Views:    order_details_view, order_totals_view, order_summary_view (order transaction details)
 --
 -- Already have the database from an older version and want to keep its data?
--- Run the files in migrations/ in order (001, 002, then 003) instead of this file.
+-- Run the files in migrations/ in order (001, 002, 003, then 004) instead of this file.
 --
 -- How to import: open phpMyAdmin > Import > choose this file > Go
 -- WARNING: importing this file again deletes all data in these tables.
@@ -28,6 +28,7 @@ DROP TABLE IF EXISTS password_resets;
 DROP TABLE IF EXISTS order_status_history;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS coupon;
 DROP TABLE IF EXISTS cart;
 DROP TABLE IF EXISTS stock;
 DROP TABLE IF EXISTS product;
@@ -111,13 +112,36 @@ CREATE TABLE cart (
     FOREIGN KEY (product_id) REFERENCES product (product_id) ON DELETE CASCADE
 );
 
+-- discount coupons that the admin creates and customers enter at checkout
+-- discount_type 'percent': discount_value % off the items total; 'fixed': discount_value pesos off
+-- min_order: the items total needed to use it; max_uses: NULL = no limit
+-- starts_at / expires_at: NULL = no start / end date
+-- each customer may use a coupon once (cancelled orders do not count)
+CREATE TABLE coupon (
+    coupon_id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    code VARCHAR(30) NOT NULL UNIQUE,
+    description VARCHAR(255) NULL,
+    discount_type ENUM('percent', 'fixed') NOT NULL,
+    discount_value DECIMAL(10,2) NOT NULL,
+    min_order DECIMAL(10,2) NOT NULL DEFAULT 0,
+    max_uses INT NULL,
+    starts_at DATE NULL,
+    expires_at DATE NULL,
+    status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- customer orders
 -- status flow: pending -> processing -> shipped -> completed (or cancelled before shipping)
 -- payment_method is a code from payment_methods() in includes/functions.php, e.g. 'cod'
+-- total_amount is what the customer pays: the items total minus discount_amount
+-- coupon_id + discount_amount: the coupon used at checkout and how much it took off (0 = none)
 CREATE TABLE orders (
     order_id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     user_id INT NOT NULL,
     total_amount DECIMAL(10,2) NOT NULL,
+    coupon_id INT NULL,
+    discount_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
     status ENUM('pending', 'processing', 'shipped', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
     shipping_address VARCHAR(255) NOT NULL,
     payment_method VARCHAR(20) NOT NULL DEFAULT 'cod',
@@ -125,7 +149,8 @@ CREATE TABLE orders (
     paid_at DATETIME NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL,
-    FOREIGN KEY (user_id) REFERENCES users (user_id)
+    FOREIGN KEY (user_id) REFERENCES users (user_id),
+    FOREIGN KEY (coupon_id) REFERENCES coupon (coupon_id)
 );
 
 -- individual items in an order (snapshot of selling price and cost price at checkout)
@@ -192,26 +217,31 @@ FROM order_items oi
 INNER JOIN orders o USING (order_id)
 INNER JOIN product p USING (product_id);
 
--- the number of items and the grand total of each order
+-- the number of items and the items total (before any coupon discount) of each order
 CREATE VIEW order_totals_view AS
 SELECT order_id,
        COUNT(*) AS item_count,
        SUM(quantity) AS total_units,
-       SUM(quantity * price) AS grand_total
+       SUM(quantity * price) AS items_total
 FROM order_items
 GROUP BY order_id;
 
--- one row per order: the order, its customer and its totals
+-- one row per order: the order, its customer, its coupon and its totals
+-- grand_total = items_total - discount_amount (what the customer pays)
 CREATE VIEW order_summary_view AS
 SELECT o.order_id, o.user_id, u.name AS customer_name, u.email AS customer_email,
        o.status, o.shipping_address, o.payment_method, o.payment_status, o.paid_at,
        o.created_at, o.updated_at,
        COALESCE(t.item_count, 0) AS item_count,
        COALESCE(t.total_units, 0) AS total_units,
-       COALESCE(t.grand_total, 0) AS grand_total
+       COALESCE(t.items_total, 0) AS items_total,
+       c.code AS coupon_code,
+       o.discount_amount,
+       COALESCE(t.items_total, 0) - o.discount_amount AS grand_total
 FROM orders o
 INNER JOIN users u USING (user_id)
-LEFT JOIN order_totals_view t USING (order_id);
+LEFT JOIN order_totals_view t USING (order_id)
+LEFT JOIN coupon c ON c.coupon_id = o.coupon_id;
 
 -- the storefront filters and sorts by these
 CREATE INDEX idx_product_brand ON product (brand);
@@ -267,3 +297,7 @@ INSERT INTO stock (product_id, quantity) VALUES
 (13, 40),
 (14, 50),
 (15, 5);
+
+-- a sample coupon: 10% off orders of 500 pesos or more
+INSERT INTO coupon (code, description, discount_type, discount_value, min_order, max_uses, status) VALUES
+('WELCOME10', '10% off your order', 'percent', 10.00, 500.00, NULL, 'active');

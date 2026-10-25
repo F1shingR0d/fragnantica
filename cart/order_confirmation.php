@@ -14,7 +14,7 @@ if (!$order_id) {
 }
 
 // Fetch order scoped to current user (order_summary_view view)
-$orderSql = "SELECT order_id, grand_total, status, shipping_address, payment_method, payment_status, paid_at, created_at
+$orderSql = "SELECT order_id, items_total, coupon_code, discount_amount, grand_total, status, shipping_address, payment_method, payment_status, paid_at, created_at
              FROM order_summary_view
              WHERE order_id = ? AND user_id = ?
              LIMIT 1";
@@ -103,6 +103,16 @@ include('../includes/header.php');
                 <?php endforeach; ?>
                 </tbody>
                 <tfoot class="table-light">
+                    <?php if ((float)$order['discount_amount'] > 0): ?>
+                        <tr>
+                            <td colspan="3" class="text-end">Items total:</td>
+                            <td><?= peso($order['items_total']) ?></td>
+                        </tr>
+                        <tr class="text-success">
+                            <td colspan="3" class="text-end">Coupon <strong class="font-monospace"><?= e($order['coupon_code']) ?></strong>:</td>
+                            <td>&minus; <?= peso($order['discount_amount']) ?></td>
+                        </tr>
+                    <?php endif; ?>
                     <tr>
                         <th colspan="3" class="text-end">
                             <?php

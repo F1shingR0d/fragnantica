@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/settings.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -13,13 +14,13 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
     </script>
-    <title>Fragrance &amp; Scent Store</title>
+    <title><?= htmlspecialchars(STORE_NAME, ENT_QUOTES, 'UTF-8') ?></title>
 </head>
 
 <body>
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/Fragnantica/index.php">Fragrance &amp; Scent Store</a>
+            <a class="navbar-brand" href="/Fragnantica/index.php"><?= htmlspecialchars(STORE_NAME, ENT_QUOTES, 'UTF-8') ?></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                 aria-label="Toggle navigation">
@@ -38,6 +39,7 @@
                         echo '<li class="nav-item"><a class="nav-link" href="/Fragnantica/product/create.php">Add Product</a></li>';
                         echo '<li class="nav-item"><a class="nav-link" href="/Fragnantica/order/index.php"><i class="fa-solid fa-receipt"></i> Orders</a></li>';
                         echo '<li class="nav-item"><a class="nav-link" href="/Fragnantica/admin/users/index.php"><i class="fa-solid fa-users"></i> Users</a></li>';
+                        echo '<li class="nav-item"><a class="nav-link" href="/Fragnantica/admin/coupons/index.php"><i class="fa-solid fa-ticket"></i> Coupons</a></li>';
                     }
 
                     // links for any logged in user

@@ -110,7 +110,8 @@ include('./includes/header.php');
 <div class="container mt-3">
     <?php include('./includes/alert.php'); ?>
 </div>
-<h1 align="center">Fragrance &amp; Scent Products</h1>
+<h1 align="center"><?= e(STORE_NAME) ?></h1>
+<p class="text-center text-muted mb-3">Perfumes, candles and home fragrances</p>
 
 <!-- search: finds products by name, brand, category, scent type or description -->
 <form class="home-search mx-3 mx-lg-auto mb-3" method="GET" action="index.php" role="search">

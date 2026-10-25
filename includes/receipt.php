@@ -100,6 +100,14 @@ function order_receipt_pdf($conn, $order_id)
         $y = 50;
     }
     $y += 22;
+    if ((float)$order['discount_amount'] > 0) {
+        $pdf->text(430, $y, 'Items total', 10, false, 'right');
+        $pdf->text($right - 8, $y, pdf_money($order['items_total']), 10, false, 'right');
+        $y += 16;
+        $pdf->text(430, $y, 'Coupon ' . $order['coupon_code'], 10, false, 'right', array(30, 123, 52));
+        $pdf->text($right - 8, $y, '- ' . pdf_money($order['discount_amount']), 10, false, 'right', array(30, 123, 52));
+        $y += 20;
+    }
     $units = (int)$order['total_units'];
     $pdf->text($left + 8, $y, $units . ' item' . ($units === 1 ? '' : 's') . ' in this order', 10, false, 'left', $grey);
     $pdf->text(430, $y, 'Grand Total', 12, true, 'right');

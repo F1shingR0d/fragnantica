@@ -86,7 +86,7 @@ function email_layout($title, $contentHtml)
         . "<div style=\"padding:20px;\"><h2 style=\"font-family:'Trebuchet MS',Arial,sans-serif;font-size:20px;margin:0 0 14px;\">" . e($title) . "</h2>"
         . $contentHtml
         . "</div>"
-        . "<div style=\"padding:12px 20px;font-size:12px;color:#888888;border-top:1px solid #EAEAEA;\">&copy; {$year} {$store}. You are receiving this because you have an account with us.</div>"
+        . "<div style=\"padding:12px 20px;font-size:12px;color:#888888;border-top:1px solid #EAEAEA;\">&copy; {$year} {$store}. You are receiving this because you have an account with us. Questions? Write to " . e(STORE_EMAIL) . ".</div>"
         . "</div>";
 }
 
@@ -101,9 +101,18 @@ function email_order_table($conn, $order_id)
 {
     $sql = "SELECT product_name, brand, quantity, price, subtotal FROM order_details_view WHERE order_id = ? ORDER BY order_item_id";
     $items = mysqli_fetch_all(mysqli_execute_query($conn, $sql, [$order_id]), MYSQLI_ASSOC);
-    $sql = "SELECT grand_total FROM order_summary_view WHERE order_id = ? LIMIT 1";
+    $sql = "SELECT items_total, coupon_code, discount_amount, grand_total FROM order_summary_view WHERE order_id = ? LIMIT 1";
     $summary = mysqli_fetch_assoc(mysqli_execute_query($conn, $sql, [$order_id]));
     $grandTotal = $summary ? $summary['grand_total'] : 0;
+
+    // with a coupon: the items total and the discount above the grand total
+    $discountRows = '';
+    if ($summary && (float)$summary['discount_amount'] > 0) {
+        $discountRows = "<tr><td colspan=\"3\" style=\"padding:6px 8px;text-align:right;\">Items total</td>"
+            . "<td style=\"padding:6px 8px;text-align:right;\">" . peso($summary['items_total']) . "</td></tr>"
+            . "<tr><td colspan=\"3\" style=\"padding:6px 8px;text-align:right;color:#1E7B34;\">Coupon " . e($summary['coupon_code']) . "</td>"
+            . "<td style=\"padding:6px 8px;text-align:right;color:#1E7B34;\">&minus; " . peso($summary['discount_amount']) . "</td></tr>";
+    }
 
     $cell = "padding:6px 8px;border-bottom:1px solid #EAEAEA;";
     $rows = '';
@@ -117,6 +126,7 @@ function email_order_table($conn, $order_id)
         . "<tr style=\"background:#F5F5F5;\"><th style=\"{$cell}text-align:left;\">Product</th><th style=\"{$cell}text-align:right;\">Price</th>"
         . "<th style=\"{$cell}\">Qty</th><th style=\"{$cell}text-align:right;\">Subtotal</th></tr>"
         . $rows
+        . $discountRows
         . "<tr><th colspan=\"3\" style=\"padding:8px;text-align:right;\">Grand Total</th>"
         . "<th style=\"padding:8px;text-align:right;color:#8B1E3F;\">" . peso($grandTotal) . "</th></tr>"
         . "</table>";

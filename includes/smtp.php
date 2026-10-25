@@ -21,6 +21,7 @@ function mime_message($to, $subject, $html, $attachments = array())
     $headers = array(
         'Date: ' . date('r'),
         'From: =?UTF-8?B?' . base64_encode(MAIL_FROM_NAME) . '?= <' . MAIL_FROM . '>',
+        'Reply-To: <' . STORE_EMAIL . '>',
         'To: <' . $to . '>',
         'Subject: =?UTF-8?B?' . base64_encode($subject) . '?=',
         'Message-ID: <' . bin2hex(random_bytes(16)) . '@' . $domain . '>',
