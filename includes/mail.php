@@ -23,7 +23,17 @@ function send_mail($to, $subject, $contentHtml, $attachments = array())
     // 'smtp': send through Mailtrap (or another SMTP server)
     if (MAIL_DRIVER === 'smtp' && SMTP_USERNAME !== '') {
         try {
-            smtp_send($to, mime_message($to, $subject, $body, $attachments));
+            $message = mime_message($to, $subject, $body, $attachments);
+            try {
+                smtp_send($to, $message);
+            } catch (RuntimeException $e) {
+                // Mailtrap's free plan refuses emails sent too close together: wait and try once more
+                if (stripos($e->getMessage(), 'too many emails per second') === false) {
+                    throw $e;
+                }
+                sleep(3);
+                smtp_send($to, $message);
+            }
             return true;
         } catch (RuntimeException $e) {
             error_log("send_mail: could not send '{$subject}' to {$to}: " . $e->getMessage());

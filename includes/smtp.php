@@ -85,7 +85,20 @@ function smtp_send($to, $message)
         'verify_peer_name' => true,
         'peer_name' => SMTP_HOST,
     )));
-    $socket = @stream_socket_client($prefix . SMTP_HOST . ':' . (int)SMTP_PORT, $errno, $errstr, 15, STREAM_CLIENT_CONNECT, $context);
+    // connect over IPv4 first: some networks hand out IPv6 (NAT64) addresses for the server that
+    // never answer, and Windows tries those first. The certificate is still checked against SMTP_HOST.
+    $socket = false;
+    $errstr = '';
+    $addresses = gethostbynamel(SMTP_HOST) ?: array();
+    foreach (array_slice($addresses, 0, 3) as $ip) {
+        $socket = @stream_socket_client($prefix . $ip . ':' . (int)SMTP_PORT, $errno, $errstr, 10, STREAM_CLIENT_CONNECT, $context);
+        if ($socket) {
+            break;
+        }
+    }
+    if (!$socket) {
+        $socket = @stream_socket_client($prefix . SMTP_HOST . ':' . (int)SMTP_PORT, $errno, $errstr, 15, STREAM_CLIENT_CONNECT, $context);
+    }
     if (!$socket) {
         throw new RuntimeException("Cannot connect to " . SMTP_HOST . ":" . SMTP_PORT . " ({$errstr})");
     }
