@@ -1,63 +1,18 @@
 # Sending emails with Mailtrap
 
-The store sends emails for: order received, every order status change, password reset links,
-and "your password was changed" notices.
+When an admin updates an order's status (`admin/updateOrder.php`), the customer gets an email
+listing the products, their subtotals and the grand total, with the receipt attached as a PDF.
+The email is sent with PHPMailer (the `PHPMailer/` folder) through Mailtrap's test inbox.
+The PDF is made with FPDF (the `fpdf/` folder).
 
-Order emails list every product with its price, quantity and subtotal, any coupon discount,
-plus the grand total, and carry the **PDF receipt** of the transaction as an attachment.
+## Setup
 
-Emails go through [Mailtrap](https://mailtrap.io). Its Email Testing sandbox catches every email
-in a test inbox, so nothing reaches a real customer. The store talks to Mailtrap over SMTP with
-its own small client (`includes/smtp.php`), so there is nothing to install.
+1. Log in to https://mailtrap.io and open **Email Testing > Sandboxes > your inbox**.
+2. Open **Integration > SMTP** and copy the **Username** and **Password**.
+3. Copy `includes/mail_config.example.php` to `includes/mail_config.php`.
+4. Put your username and password in `includes/mail_config.php`.
 
-Emails are sent as **Veloura** from `no-reply@veloura.test`. Replies go to the store's contact
-address, `STORE_EMAIL` in `includes/settings.php`.
+`includes/mail_config.php` is in `.gitignore`, so it is not uploaded to GitHub. Copy it by hand
+to every computer you run the project on.
 
-## 1. Get your Mailtrap login
-
-1. Sign up at mailtrap.io (free).
-2. Open **Email Testing** (Sandboxes) and open your inbox (one called "My Inbox" is created for you).
-3. Open the **Integration** tab and choose **SMTP**. Note the **Username** and **Password**.
-
-## 2. Put them in the store
-
-Open `includes/mail_config.php` (if it is not there, copy `includes/mail_config.example.php`
-to that name) and fill in your username and password:
-
-```php
-define('SMTP_HOST', 'sandbox.smtp.mailtrap.io');
-define('SMTP_PORT', 2525);
-define('SMTP_ENCRYPTION', 'tls');
-define('SMTP_USERNAME', 'your-mailtrap-username');
-define('SMTP_PASSWORD', 'your-mailtrap-password');
-```
-
-`includes/mail_config.php` is in `.gitignore`, so the password never ends up on GitHub.
-
-## 3. Test it
-
-1. Log in as a customer, add products to the cart and check out. The "Order received" email
-   arrives in your Mailtrap inbox with the receipt attached.
-2. Log in as the admin, open **Orders > Manage** and change the status (e.g. Start Processing).
-   The customer gets a status email listing the products, their subtotals and the grand total,
-   with `receipt-order-N.pdf` attached.
-
-If nothing arrives, the admin sees "the email to the customer could not be sent", and the exact
-reason is written to Apache's error log (`C:\xampp\apache\logs\error.log`). A copy of the
-unsent email is also saved in `storage/mail/`.
-
-## Without Mailtrap
-
-While `includes/mail_config.php` does not exist (or has no username), emails are not sent but
-saved as web pages in `storage/mail/`, with their PDF attachments next to them. Open them from
-the folder to read them. You can also force this with `define('MAIL_DRIVER', 'log');` in
-`includes/mail_config.php`. That folder is blocked from the web and ignored by git, because the
-files contain password reset links.
-
-## When the site goes live
-
-Mailtrap's sandbox never delivers to real inboxes. To send real emails, use Mailtrap's
-**Email Sending** SMTP settings (or another SMTP provider) in `includes/mail_config.php`, set
-`MAIL_FROM` to an address on your verified domain, and change `APP_URL` in
-`includes/settings.php` to the real address of the store, otherwise the links inside emails
-point to `localhost`.
+If the file is missing, the status is still saved and the page tells you the email was not sent.

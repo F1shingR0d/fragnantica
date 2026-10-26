@@ -8,12 +8,8 @@
 
 define('SMTP_HOST', 'sandbox.smtp.mailtrap.io');
 define('SMTP_PORT', 2525);
-define('SMTP_ENCRYPTION', 'tls');
 define('SMTP_USERNAME', 'your-mailtrap-username');
 define('SMTP_PASSWORD', 'your-mailtrap-password');
 
 // the sender shown in the emails (Mailtrap's test inbox accepts any address)
 define('MAIL_FROM', 'no-reply@veloura.test');
-
-// uncomment to save emails as files in storage/mail/ instead of sending them
-// define('MAIL_DRIVER', 'log');

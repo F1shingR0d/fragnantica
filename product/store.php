@@ -1,106 +1,138 @@
 <?php
 session_start();
 include('../includes/config.php');
-include('../includes/functions.php');
-include('../includes/product_form.php');
+include('../includes/adminCheck.php');
 
-// only admins can add products
-require_admin();
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
+    $name = trim(strip_tags($_POST['name']));
+    $category_id = trim($_POST['category_id']);
+    $brand = trim(strip_tags($_POST['brand']));
+    $size = trim(strip_tags($_POST['size']));
+    $desc = trim(strip_tags($_POST['description']));
+    $costInput = trim($_POST['cost_price']);
+    $sellInput = trim($_POST['sell_price']);
+    $qtyInput = trim($_POST['quantity']);
+    $hasErrors = false;
 
-if (!isset($_POST['submit'])) {
-    header("Location: create.php");
-    exit();
-}
+    // validation (PHP only, the form has novalidate)
+    if ($name === '') {
+        $_SESSION['nameError'] = 'Please input the product name';
+        $hasErrors = true;
+    } else if (strlen($name) > 100) {
+        $_SESSION['nameError'] = 'The product name should be 100 characters or less';
+        $hasErrors = true;
+    }
+    if ($category_id === '' || !is_numeric($category_id)) {
+        $_SESSION['categoryError'] = 'Please choose a category';
+        $hasErrors = true;
+    }
+    if ($brand === '') {
+        $_SESSION['brandError'] = 'Please input the brand';
+        $hasErrors = true;
+    }
+    if ($size === '') {
+        $_SESSION['sizeError'] = 'Please input the size, e.g. 100 ml';
+        $hasErrors = true;
+    }
+    if ($desc === '') {
+        $_SESSION['descError'] = 'Please input a product description';
+        $hasErrors = true;
+    } else if (strlen($desc) > 255) {
+        $_SESSION['descError'] = 'The description should be 255 characters or less';
+        $hasErrors = true;
+    }
+    if ($costInput === '' || !is_numeric($costInput) || $costInput <= 0) {
+        $_SESSION['costError'] = 'Please enter a valid cost price';
+        $hasErrors = true;
+    }
+    if ($sellInput === '' || !is_numeric($sellInput) || $sellInput <= 0) {
+        $_SESSION['sellError'] = 'Please enter a valid sell price';
+        $hasErrors = true;
+    } else if (is_numeric($costInput) && $sellInput < $costInput) {
+        $_SESSION['sellError'] = 'The sell price should not be lower than the cost price';
+        $hasErrors = true;
+    }
+    if ($qtyInput === '' || filter_var($qtyInput, FILTER_VALIDATE_INT) === false || (int)$qtyInput < 0) {
+        $_SESSION['qtyError'] = 'Please enter a valid quantity';
+        $hasErrors = true;
+    }
 
-// validation (all in PHP): the fields, the main photo (required) and the extra photos (optional)
-list($data, $errors, $old) = validate_product_input($conn);
+    // the main photo is required
+    if (!isset($_FILES['img_path']) || $_FILES['img_path']['error'] === UPLOAD_ERR_NO_FILE) {
+        $_SESSION['imageError'] = 'Please select an image';
+        $hasErrors = true;
+    } else if ($_FILES['img_path']['type'] != "image/jpeg" && $_FILES['img_path']['type'] != "image/jpg" && $_FILES['img_path']['type'] != "image/png") {
+        $_SESSION['imageError'] = 'wrong file type, please use JPG or PNG';
+        $hasErrors = true;
+    }
 
-if (!csrf_valid()) {
-    $_SESSION['message'] = 'Your session expired. Please try again.';
-    keep_form('product_create', $errors, $old);
-    header("Location: create.php");
-    exit();
-}
-
-$mainPhoto = isset($_FILES['img_path']) ? $_FILES['img_path'] : null;
-$photoError = photo_upload_error($mainPhoto, true);
-if ($photoError !== '') {
-    $errors['photo'] = $photoError;
-}
-list($extraFiles, $extraError) = validate_extra_photos(MAX_PRODUCT_PHOTOS);
-if ($extraError !== '') {
-    $errors['photos'] = $extraError;
-}
-
-if ($errors) {
-    // keep what the admin typed so the form can be filled again (files cannot be kept)
-    keep_form('product_create', $errors, $old);
-    header("Location: create.php");
-    exit();
-}
-
-// save the photos in the images folder with new names so files do not overwrite each other
-$folder = __DIR__ . '/images';
-$saved = array();
-$mainName = save_photo($mainPhoto, $folder);
-if ($mainName !== '') {
-    $saved[] = 'images/' . $mainName;
-    foreach ($extraFiles as $file) {
-        $name = save_photo($file, $folder);
-        if ($name === '') {
-            $mainName = '';
-            break;
+    // more photos are optional, but they must be JPG or PNG
+    if (isset($_FILES['photos']) && $_FILES['photos']['name'][0] !== '') {
+        foreach ($_FILES['photos']['type'] as $key => $type) {
+            if ($type != "image/jpeg" && $type != "image/jpg" && $type != "image/png") {
+                $_SESSION['photosError'] = "wrong file type: {$_FILES['photos']['name'][$key]}, please use JPG or PNG";
+                $hasErrors = true;
+            }
         }
-        $saved[] = 'images/' . $name;
+    }
+
+    if ($hasErrors) {
+        $_SESSION['prodName'] = $name;
+        $_SESSION['category'] = $category_id;
+        $_SESSION['brand'] = $brand;
+        $_SESSION['size'] = $size;
+        $_SESSION['desc'] = $desc;
+        $_SESSION['cost'] = $costInput;
+        $_SESSION['sell'] = $sellInput;
+        $_SESSION['qty'] = $qtyInput;
+        header("Location: create.php");
+        exit();
+    }
+
+    $cost = (float)$costInput;
+    $sell = (float)$sellInput;
+    $qty = (int)$qtyInput;
+    $category_id = (int)$category_id;
+
+    // save the main photo
+    $source = $_FILES['img_path']['tmp_name'];
+    $target = 'images/' . time() . '_' . $_FILES['img_path']['name'];
+    move_uploaded_file($source, $target) or die("Couldn't copy");
+
+    mysqli_begin_transaction($conn);
+    try {
+        $sql = "INSERT INTO product (category_id, name, brand, size, description, cost_price, sell_price, img_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt1 = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt1, 'issssdds', $category_id, $name, $brand, $size, $desc, $cost, $sell, $target);
+        mysqli_stmt_execute($stmt1);
+        $product_id = mysqli_insert_id($conn);
+
+        $sql = "INSERT INTO stock (product_id, quantity) VALUES (?, ?)";
+        $stmt2 = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt2, 'ii', $product_id, $qty);
+        mysqli_stmt_execute($stmt2);
+
+        // save the other photos
+        if (isset($_FILES['photos']) && $_FILES['photos']['name'][0] !== '') {
+            $sql = "INSERT INTO product_images (product_id, img_path) VALUES (?, ?)";
+            $stmt3 = mysqli_prepare($conn, $sql);
+            foreach ($_FILES['photos']['name'] as $key => $photoName) {
+                $photo = 'images/' . time() . '_' . $photoName;
+                move_uploaded_file($_FILES['photos']['tmp_name'][$key], $photo);
+                mysqli_stmt_bind_param($stmt3, 'is', $product_id, $photo);
+                mysqli_stmt_execute($stmt3);
+            }
+        }
+
+        mysqli_commit($conn);
+        $_SESSION['success'] = 'product saved';
+        header("Location: index.php");
+        exit();
+    } catch (mysqli_sql_exception $e) {
+        mysqli_rollback($conn);
+        $_SESSION['message'] = 'could not save the product';
+        header("Location: create.php");
+        exit();
     }
 }
-if ($mainName === '') {
-    foreach ($saved as $path) {
-        delete_photo_file(__DIR__ . '/' . $path);
-    }
-    $_SESSION['message'] = 'The photos could not be saved. Please try again.';
-    keep_form('product_create', array(), $old);
-    header("Location: create.php");
-    exit();
-}
-$target = $saved[0];
-
-// save the product, its stock and its extra photos together
-mysqli_begin_transaction($conn);
-
-try {
-    $sql = "INSERT INTO product (category_id, name, brand, scent_type, size, unit, description, cost_price, sell_price, img_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    $stmt1 = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt1, 'isssissdds', $data['category_id'], $data['name'], $data['brand'], $data['scent_type'], $data['size'],
-        $data['unit'], $data['description'], $data['cost_price'], $data['sell_price'], $target);
-    mysqli_stmt_execute($stmt1);
-    $product_id = mysqli_insert_id($conn);
-
-    $sql = "INSERT INTO stock (product_id, quantity) VALUES (?, ?)";
-    $stmt2 = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt2, 'ii', $product_id, $data['quantity']);
-    mysqli_stmt_execute($stmt2);
-
-    $sql = "INSERT INTO product_images (product_id, img_path) VALUES (?, ?)";
-    $stmt3 = mysqli_prepare($conn, $sql);
-    foreach (array_slice($saved, 1) as $path) {
-        mysqli_stmt_bind_param($stmt3, 'is', $product_id, $path);
-        mysqli_stmt_execute($stmt3);
-    }
-
-    mysqli_commit($conn);
-} catch (mysqli_sql_exception $e) {
-    mysqli_rollback($conn);
-    foreach ($saved as $path) {
-        delete_photo_file(__DIR__ . '/' . $path);
-    }
-    $_SESSION['message'] = 'Could not save the product. Please try again.';
-    keep_form('product_create', array(), $old);
-    header("Location: create.php");
-    exit();
-}
-
-$extraCount = count($saved) - 1;
-$_SESSION['success'] = 'Product added successfully' . ($extraCount > 0 ? " with {$extraCount} extra photo" . ($extraCount === 1 ? '' : 's') : '') . '.';
-header("Location: index.php");
-exit();
+header("Location: create.php");
