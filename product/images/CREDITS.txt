@@ -2,41 +2,6 @@ Photo credits for the sample products
 All photos are from Wikimedia Commons (https://commons.wikimedia.org).
 Some were downloaded as smaller 500px versions of the original.
 
-sample_chanel_no5.jpg
-  Source:  https://commons.wikimedia.org/wiki/File:CHANEL_No5_parfum_(cropped).jpg
-  Author:  arz
-  License: Public domain
-
-sample_dior_sauvage.jpg
-  Source:  https://commons.wikimedia.org/wiki/File:Dior_Sauvage_Verpackung.jpg
-  Author:  DYVER
-  License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
-
-sample_acqua_di_gio.jpg
-  Source:  https://commons.wikimedia.org/wiki/File:Acqua_di_Gio.jpg
-  Author:  Gonna Fly Now
-  License: CC BY-SA 2.0 (https://creativecommons.org/licenses/by-sa/2.0/)
-
-sample_1_million.jpg
-  Source:  https://commons.wikimedia.org/wiki/File:2023_Woda_toaletowa_Paco_Rabanne_1_Million.jpg
-  Author:  Jacek Halicki
-  License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
-
-sample_versace_eros.jpg
-  Source:  https://commons.wikimedia.org/wiki/File:VersaceEros121.jpg
-  Author:  Benny191
-  License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
-
-sample_coco_mademoiselle.jpg
-  Source:  https://commons.wikimedia.org/wiki/File:Coco_mademoiselle.jpg
-  Author:  Brownchl
-  License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
-
-sample_le_male.jpg
-  Source:  https://commons.wikimedia.org/wiki/File:Gaultier_Le_M%C3%A2le.jpg
-  Author:  Bruce The Deus
-  License: CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/)
-
 sample_attar_oil.jpg
   Source:  https://commons.wikimedia.org/wiki/File:Minyak_atar_(attar)_yang_dijual_di_dataran_puncak_Jabal_Rahmah,_Mekah.jpg
   Author:  Kerina yin
@@ -76,3 +41,7 @@ sample_essential_oils.jpg
   Source:  https://commons.wikimedia.org/wiki/File:Essential_oil_kit.jpg
   Author:  Vanilla and lace
   License: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0/)
+
+Homepage banner video (includes/video/hero.mp4)
+  "Candles in the dark" from Mixkit (https://mixkit.co/free-stock-video/candles-in-the-dark-17426/)
+  License: Mixkit Stock Video Free License (https://mixkit.co/license/)

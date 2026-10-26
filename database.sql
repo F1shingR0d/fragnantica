@@ -163,13 +163,6 @@ INSERT INTO category (category_id, name) VALUES
 
 -- sample products (photos are in product/images, see product/images/CREDITS.txt)
 INSERT INTO product (product_id, category_id, name, brand, size, description, cost_price, sell_price, img_path) VALUES
-(1, 1, 'No. 5 Eau de Parfum', 'Chanel', '100 ml', 'Classic floral with rose and jasmine.', 7200.00, 9950.00, 'images/sample_chanel_no5.jpg'),
-(2, 1, 'Sauvage', 'Dior', '100 ml', 'Fresh and spicy scent with bergamot and pepper.', 5300.00, 7450.00, 'images/sample_dior_sauvage.jpg'),
-(3, 1, 'Acqua di Gio', 'Giorgio Armani', '100 ml', 'Light marine scent with citrus notes.', 4400.00, 6300.00, 'images/sample_acqua_di_gio.jpg'),
-(4, 1, '1 Million', 'Paco Rabanne', '100 ml', 'Warm spicy scent with cinnamon and leather.', 3900.00, 5600.00, 'images/sample_1_million.jpg'),
-(5, 1, 'Eros', 'Versace', '100 ml', 'Mint, green apple and vanilla.', 3400.00, 4950.00, 'images/sample_versace_eros.jpg'),
-(6, 1, 'Coco Mademoiselle', 'Chanel', '100 ml', 'Fresh floral with orange and patchouli.', 6900.00, 9450.00, 'images/sample_coco_mademoiselle.jpg'),
-(7, 1, 'Le Male', 'Jean Paul Gaultier', '125 ml', 'Lavender, mint and vanilla.', 3600.00, 5200.00, 'images/sample_le_male.jpg'),
 (8, 2, 'Oud Attar Roll-On Oil', 'Aroma House', '6 ml', 'Alcohol-free perfume oil in a roll-on bottle.', 120.00, 249.00, 'images/sample_attar_oil.jpg'),
 (9, 3, 'Mahogany Teakwood Candle', 'White Barn', '200 g', 'Glass jar candle with warm woody notes.', 650.00, 1150.00, 'images/sample_scented_candle.jpg'),
 (10, 4, 'Lavender Reed Diffuser', 'Aroma House', '100 ml', 'Lavender oil with reed sticks, lasts up to 2 months.', 280.00, 499.00, 'images/sample_reed_diffuser.jpg'),
@@ -180,5 +173,4 @@ INSERT INTO product (product_id, category_id, name, brand, size, description, co
 (15, 9, 'Essential Oil Starter Set', 'Young Living', '11 pcs', 'Set of 11 x 5 ml oils including lavender and lemon.', 2200.00, 3499.00, 'images/sample_essential_oils.jpg');
 
 INSERT INTO stock (product_id, quantity) VALUES
-(1, 10), (2, 15), (3, 12), (4, 20), (5, 18), (6, 8), (7, 3), (8, 30),
-(9, 12), (10, 20), (11, 6), (12, 14), (13, 40), (14, 50), (15, 5);
+(8, 30), (9, 12), (10, 20), (11, 6), (12, 14), (13, 40), (14, 50), (15, 5);
