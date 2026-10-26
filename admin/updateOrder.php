@@ -4,6 +4,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 
 session_start();
 include('../includes/config.php');
+include('../includes/functions.php');
 include('../includes/adminCheck.php');
 require '../PHPMailer/src/Exception.php';
 require '../PHPMailer/src/PHPMailer.php';
@@ -100,8 +101,8 @@ foreach ($items as $item) {
     $rows .= "<tr>
         <td>{$item['product_name']} ({$item['size']})</td>
         <td align='center'>{$item['quantity']}</td>
-        <td align='right'>&#8369; " . number_format($item['price'], 2) . "</td>
-        <td align='right'>&#8369; " . number_format($item['subtotal'], 2) . "</td>
+        <td align='right'>" . peso($item['price']) . "</td>
+        <td align='right'>" . peso($item['subtotal']) . "</td>
     </tr>";
 }
 
@@ -144,7 +145,7 @@ $mail->Body = "<p>Hi {$customer['name']},</p>
     <table border='1' cellpadding='6' cellspacing='0'>
         <tr><th>Product</th><th>Quantity</th><th>Price</th><th>Subtotal</th></tr>
         {$rows}
-        <tr><td colspan='3' align='right'><strong>Grand Total</strong></td><td align='right'><strong>&#8369; " . number_format($grandTotal, 2) . "</strong></td></tr>
+        <tr><td colspan='3' align='right'><strong>Grand Total</strong></td><td align='right'><strong>" . peso($grandTotal) . "</strong></td></tr>
     </table>
     <p>Your receipt is attached as a PDF.</p>
     <p>Thank you for shopping at Veloura!</p>";

@@ -1,6 +1,7 @@
 <?php
 session_start();
 include('../includes/config.php');
+include('../includes/functions.php');
 include('../includes/adminCheck.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
@@ -61,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     if (!isset($_FILES['img_path']) || $_FILES['img_path']['error'] === UPLOAD_ERR_NO_FILE) {
         $_SESSION['imageError'] = 'Please select an image';
         $hasErrors = true;
-    } else if ($_FILES['img_path']['type'] != "image/jpeg" && $_FILES['img_path']['type'] != "image/jpg" && $_FILES['img_path']['type'] != "image/png") {
+    } else if (!isImage($_FILES['img_path']['type'])) {
         $_SESSION['imageError'] = 'wrong file type, please use JPG or PNG';
         $hasErrors = true;
     }
@@ -69,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     // more photos are optional, but they must be JPG or PNG
     if (isset($_FILES['photos']) && $_FILES['photos']['name'][0] !== '') {
         foreach ($_FILES['photos']['type'] as $key => $type) {
-            if ($type != "image/jpeg" && $type != "image/jpg" && $type != "image/png") {
+            if (!isImage($type)) {
                 $_SESSION['photosError'] = "wrong file type: {$_FILES['photos']['name'][$key]}, please use JPG or PNG";
                 $hasErrors = true;
             }
@@ -95,9 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     $category_id = (int)$category_id;
 
     // save the main photo
-    $source = $_FILES['img_path']['tmp_name'];
-    $target = 'images/' . time() . '_' . $_FILES['img_path']['name'];
-    move_uploaded_file($source, $target) or die("Couldn't copy");
+    $target = savePhoto($_FILES['img_path']['tmp_name'], $_FILES['img_path']['name']);
 
     mysqli_begin_transaction($conn);
     try {
@@ -117,8 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
             $sql = "INSERT INTO product_images (product_id, img_path) VALUES (?, ?)";
             $stmt3 = mysqli_prepare($conn, $sql);
             foreach ($_FILES['photos']['name'] as $key => $photoName) {
-                $photo = 'images/' . time() . '_' . $photoName;
-                move_uploaded_file($_FILES['photos']['tmp_name'][$key], $photo);
+                $photo = savePhoto($_FILES['photos']['tmp_name'][$key], $photoName);
                 mysqli_stmt_bind_param($stmt3, 'is', $product_id, $photo);
                 mysqli_stmt_execute($stmt3);
             }

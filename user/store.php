@@ -1,6 +1,7 @@
 <?php
 session_start();
 include("../includes/config.php");
+include("../includes/functions.php");
 
 $name = trim(strip_tags($_POST['name']));
 $email = trim($_POST['email']);
@@ -14,7 +15,7 @@ if ($name === '') {
     $_SESSION['message'] = 'please enter your name';
     header("Location: register.php");
     exit();
-} else if (!preg_match("/^[\w.+-]+@\w+(\.\w+)+$/", $email)) {
+} else if (!isValidEmail($email)) {
     $_SESSION['message'] = 'email invalid format';
     header("Location: register.php");
     exit();
@@ -38,10 +39,8 @@ if (mysqli_num_rows($result) > 0) {
 // the photo is optional
 $target = null;
 if (isset($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE) {
-    if ($_FILES['photo']['type'] == "image/jpeg" || $_FILES['photo']['type'] == "image/jpg" || $_FILES['photo']['type'] == "image/png") {
-        $source = $_FILES['photo']['tmp_name'];
-        $target = 'images/' . time() . '_' . $_FILES['photo']['name'];
-        move_uploaded_file($source, $target) or die("Couldn't copy");
+    if (isImage($_FILES['photo']['type'])) {
+        $target = savePhoto($_FILES['photo']['tmp_name'], $_FILES['photo']['name']);
     } else {
         $_SESSION['message'] = 'wrong file type, please use JPG or PNG';
         header("Location: register.php");

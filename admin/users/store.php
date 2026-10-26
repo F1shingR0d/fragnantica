@@ -1,6 +1,7 @@
 <?php
 session_start();
 include('../../includes/config.php');
+include('../../includes/functions.php');
 include('../../includes/adminCheck.php');
 
 $name = trim(strip_tags($_POST['name']));
@@ -15,7 +16,7 @@ if ($name === '') {
     $_SESSION['message'] = 'please enter the name';
     header("Location: create.php");
     exit();
-} else if (!preg_match("/^[\w.+-]+@\w+(\.\w+)+$/", $email)) {
+} else if (!isValidEmail($email)) {
     $_SESSION['message'] = 'email invalid format';
     header("Location: create.php");
     exit();
@@ -39,11 +40,9 @@ if (mysqli_num_rows($result) > 0) {
 // the photo is optional
 $target = null;
 if (isset($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE) {
-    if ($_FILES['photo']['type'] == "image/jpeg" || $_FILES['photo']['type'] == "image/jpg" || $_FILES['photo']['type'] == "image/png") {
-        $source = $_FILES['photo']['tmp_name'];
-        $target = 'images/' . time() . '_' . $_FILES['photo']['name'];
+    if (isImage($_FILES['photo']['type'])) {
         // user photos are kept in the user/images folder
-        move_uploaded_file($source, '../../user/' . $target) or die("Couldn't copy");
+        $target = savePhoto($_FILES['photo']['tmp_name'], $_FILES['photo']['name'], '../../user/');
     } else {
         $_SESSION['message'] = 'wrong file type, please use JPG or PNG';
         header("Location: create.php");

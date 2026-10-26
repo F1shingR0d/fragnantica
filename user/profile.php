@@ -1,6 +1,7 @@
 <?php
 session_start();
 include("../includes/config.php");
+include("../includes/functions.php");
 include("../includes/loginCheck.php");
 
 $user_id = $_SESSION['user_id'];
@@ -9,10 +10,8 @@ $user_id = $_SESSION['user_id'];
 if (isset($_POST['upload_photo'])) {
     if (!isset($_FILES['photo']) || $_FILES['photo']['error'] === UPLOAD_ERR_NO_FILE) {
         $_SESSION['message'] = 'Please select an image';
-    } else if ($_FILES['photo']['type'] == "image/jpeg" || $_FILES['photo']['type'] == "image/jpg" || $_FILES['photo']['type'] == "image/png") {
-        $source = $_FILES['photo']['tmp_name'];
-        $target = 'images/' . time() . '_' . $_FILES['photo']['name'];
-        move_uploaded_file($source, $target) or die("Couldn't copy");
+    } else if (isImage($_FILES['photo']['type'])) {
+        $target = savePhoto($_FILES['photo']['tmp_name'], $_FILES['photo']['name']);
 
         $sql = "UPDATE users SET img_path = ? WHERE user_id = ?";
         mysqli_execute_query($conn, $sql, [$target, $user_id]);

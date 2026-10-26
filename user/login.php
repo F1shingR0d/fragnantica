@@ -1,6 +1,7 @@
 <?php
 session_start();
 include("../includes/config.php");
+include("../includes/functions.php");
 
 if (isset($_POST['submit'])) {
     $email = trim($_POST['email']);
@@ -11,7 +12,7 @@ if (isset($_POST['submit'])) {
     if ($email === '') {
         $_SESSION['emailError'] = 'Please enter your email';
         $hasErrors = true;
-    } else if (!preg_match("/^[\w.+-]+@\w+(\.\w+)+$/", $email)) {
+    } else if (!isValidEmail($email)) {
         $_SESSION['emailError'] = 'Please enter a valid email, e.g. juan@gmail.com';
         $hasErrors = true;
     }

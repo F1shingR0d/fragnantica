@@ -1,6 +1,7 @@
 <?php
 session_start();
 include('./includes/config.php');
+include('./includes/functions.php');
 include('./includes/header.php');
 
 // search: the keyword can be in the product name, brand, category or description
@@ -59,13 +60,14 @@ EOT;
             $cartForm = "<p class='text-danger'>Out of stock</p>";
         }
 
+        $price = peso($row['sell_price']);
         $products_item .= <<<EOT
         <li class="product">
             <div class="product-thumb"><a href="product/view.php?id={$row['product_id']}"><img src="./product/{$row['img_path']}"></a></div>
             <h3><a href="product/view.php?id={$row['product_id']}">{$row['name']}</a></h3>
             <p class="mb-1">{$row['brand']} &middot; {$row['size']}</p>
             <p class="mb-1 small text-muted">{$row['category']}</p>
-            <p class="price">&#8369; {$row['sell_price']}</p>
+            <p class="price">{$price}</p>
             {$cartForm}
         </li>
 EOT;

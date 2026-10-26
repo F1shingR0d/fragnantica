@@ -1,6 +1,7 @@
 <?php
 session_start();
 include('../includes/config.php');
+include('../includes/functions.php');
 include('../includes/loginCheck.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
@@ -39,12 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
         exit();
     }
 
-    // mask bad words with a regular expression, e.g. "shit" becomes "****"
-    // \b = whole words only, so "class" or "assessment" are not changed; i = any capital letters
-    $badWords = array('fuck', 'shit', 'bitch', 'asshole', 'bastard', 'damn', 'putangina', 'tangina', 'gago', 'tanga', 'bobo', 'ulol', 'tarantado', 'punyeta');
-    foreach ($badWords as $word) {
-        $comment = preg_replace("/\b{$word}\w*\b/i", "****", $comment);
-    }
+    // mask bad words, e.g. "shit" becomes "****"
+    $comment = censor($comment);
 
     $sql = "SELECT review_id FROM review WHERE user_id = ? AND product_id = ? LIMIT 1";
     $result = mysqli_execute_query($conn, $sql, [$user_id, $product_id]);

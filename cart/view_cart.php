@@ -1,6 +1,7 @@
 <?php
 session_start();
 include('../includes/config.php');
+include('../includes/functions.php');
 include('../includes/loginCheck.php');
 include('../includes/header.php');
 ?>
@@ -44,7 +45,7 @@ include('../includes/header.php');
                     }
                     ?>
                     <tr>
-                        <td colspan="5" align="right"><strong>Amount Payable : &#8369; <?php echo sprintf("%01.2f", $total); ?></strong></td>
+                        <td colspan="5" align="right"><strong>Amount Payable : <?php echo peso($total); ?></strong></td>
                     </tr>
                 </tbody>
             </table>

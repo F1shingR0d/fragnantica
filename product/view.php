@@ -1,6 +1,7 @@
 <?php
 session_start();
 include('../includes/config.php');
+include('../includes/functions.php');
 
 // anyone can view a product, no login needed
 $product_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
@@ -64,7 +65,7 @@ include('../includes/header.php');
             <p class="text-muted mb-1"><?php echo $product['category']; ?></p>
             <h2><?php echo $product['name']; ?></h2>
             <p><strong><?php echo $product['brand']; ?></strong> &middot; <?php echo $product['size']; ?></p>
-            <p class="price fs-4">&#8369; <?php echo $product['sell_price']; ?></p>
+            <p class="price fs-4"><?php echo peso($product['sell_price']); ?></p>
             <p><?php echo $product['description']; ?></p>
             <?php
             if ($reviewCount > 0) {

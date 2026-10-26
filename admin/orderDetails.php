@@ -1,6 +1,7 @@
 <?php
 session_start();
 include('../includes/config.php');
+include('../includes/functions.php');
 include('../includes/adminCheck.php');
 
 $orderId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
@@ -50,7 +51,7 @@ include('../includes/header.php');
         }
         ?>
     </table>
-    <h4 class="text-end">Grand Total: &#8369; <?= sprintf("%01.2f", $grandTotal) ?></h4>
+    <h4 class="text-end">Grand Total: <?= peso($grandTotal) ?></h4>
 
     <?php if ($customer['status'] === 'cancelled') { ?>
         <p class="text-muted">This order was cancelled, so its status can no longer be changed.</p>

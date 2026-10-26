@@ -1,6 +1,7 @@
 <?php
 session_start();
 include('../includes/config.php');
+include('../includes/functions.php');
 include('../includes/loginCheck.php');
 include('../includes/header.php');
 
@@ -37,7 +38,7 @@ $orders = mysqli_execute_query($conn, $sql, [$_SESSION['user_id']]);
             echo "</tr>";
         }
         echo "</tbody></table>";
-        echo "<p class='text-end mb-0'><strong>Grand Total: &#8369; {$order['total']}</strong></p>";
+        echo "<p class='text-end mb-0'><strong>Grand Total: " . peso($order['total']) . "</strong></p>";
         echo "</div></div>";
     }
     ?>
