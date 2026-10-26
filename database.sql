@@ -12,6 +12,9 @@
 CREATE DATABASE IF NOT EXISTS fragrance_store;
 USE fragrance_store;
 
+-- lets the old tables be deleted even if another old table still points to them
+SET FOREIGN_KEY_CHECKS = 0;
+
 DROP VIEW IF EXISTS order_totals_view;
 DROP VIEW IF EXISTS order_details_view;
 
@@ -189,3 +192,5 @@ INSERT INTO stock (product_id, quantity) VALUES
 (8, 30), (9, 12), (10, 20), (11, 6), (12, 14), (13, 40), (14, 50), (15, 5),
 (16, 25), (17, 15), (18, 20), (19, 10), (20, 8), (21, 12), (22, 10), (23, 4),
 (24, 9), (25, 11), (26, 30), (27, 7), (28, 35), (29, 45);
+
+SET FOREIGN_KEY_CHECKS = 1;

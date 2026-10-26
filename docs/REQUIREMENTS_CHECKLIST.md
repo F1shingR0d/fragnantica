@@ -2,8 +2,16 @@
 
 Where each requirement is in the project and how to show it.
 
-**Before the demo:** put the project folder in `C:\xampp\htdocs\Veloura` (open it at `http://localhost/Veloura`), import `database.sql`
-in phpMyAdmin, and set up Mailtrap (`docs/EMAIL_SETUP.md`).
+**Before the demo (on any computer):**
+
+1. Copy the project folder into `C:\xampp\htdocs` (any folder name works, e.g. `C:\xampp\htdocs\Veloura`).
+2. Start Apache and MySQL in the XAMPP Control Panel (PHP 8.0 or newer).
+3. Open `http://localhost/Veloura` (use your folder name). The first time, the site goes to `setup.php`:
+   click **Set up the database** and it imports `database.sql`. It also does this when the database is an old copy.
+4. For the order emails, set up Mailtrap (`docs/EMAIL_SETUP.md`). `includes/mail_config.php` is not on GitHub,
+   so copy it with the folder or make it again from `includes/mail_config.example.php`.
+
+If MySQL has a password or another port on that computer, change it at the top of `includes/config.php`.
 
 Accounts: admin `admin@veloura.test` / `admin123`, customer `customer@veloura.test` / `customer123`.
 
