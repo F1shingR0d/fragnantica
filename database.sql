@@ -151,7 +151,6 @@ INSERT INTO customer (user_id, addressline, town, zipcode, phone) VALUES
 (2, '123 Rizal St., Brgy. San Antonio', 'Pasig City', '1600', '09171234567');
 
 INSERT INTO category (category_id, name) VALUES
-(1, 'Perfumes'),
 (2, 'Perfume Oils'),
 (3, 'Scented Candles'),
 (4, 'Reed Diffusers'),
