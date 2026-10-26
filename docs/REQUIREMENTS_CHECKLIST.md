@@ -41,7 +41,7 @@ Accounts: admin `admin@veloura.test` / `admin123`, customer `customer@veloura.te
 | Only a customer who availed the product can review | `review/store.php` and `product/view.php` check `order_details_view` for a **completed** order with the product |
 | Reviews on the product details page | `product/view.php` > Customer Reviews |
 | User can update the review | Same form shows "Update review"; `review/store.php` updates it (one review per customer per product) |
-| Regex filter for bad words | `review/store.php`: `preg_replace("/\b{$word}\w*\b/i", "****", ...)` |
+| Regex filter for bad words | `review/store.php` calls `censor()` (in `includes/functions.php`): `preg_replace("/\b{$word}\w*\b/i", "****", ...)` |
 
 ## MP5 Form validation in PHP, no HTML5 validation
 
@@ -76,3 +76,15 @@ Views (`database.sql`):
 
 `index.php`: search box at the top of the home page (and in the navbar). Searches product name,
 brand, category and description.
+
+## User-defined functions
+
+`includes/functions.php`, included after `config.php` on the pages that use it:
+
+| Function | What it does | Used in |
+|---|---|---|
+| `isValidEmail($email)` | checks the email format with a regex | `user/login.php`, `user/store.php`, `admin/users/store.php`, `admin/users/update.php` |
+| `isImage($type)` | checks if an uploaded file is a JPG or PNG | `user/store.php`, `user/profile.php`, `admin/users/store.php`, `admin/users/update.php`, `product/store.php`, `product/update.php` |
+| `savePhoto($source, $fileName, $folder)` | saves an uploaded photo in `images/` and returns its path | same files as `isImage()` |
+| `censor($text)` | replaces bad words with `****` | `review/store.php` |
+| `peso($amount)` | shows an amount as `₱ 1,500.00` | `index.php`, `product/view.php`, `cart/view_cart.php`, `user/myorders.php`, `admin/orderDetails.php`, `admin/updateOrder.php` (email) |
