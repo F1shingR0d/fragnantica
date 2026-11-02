@@ -1,8 +1,10 @@
 <?php
+// SESSION + INCLUDES: start the session, connect, admin only
 session_start();
 include('../includes/config.php');
 include('../includes/adminCheck.php');
 
+// IF block: stop if the id is not a number
 $product_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
 if (!$product_id) {
@@ -10,7 +12,7 @@ if (!$product_id) {
     exit;
 }
 
-// the other photos and reviews are deleted with the product (ON DELETE CASCADE)
+// TRY-CATCH block (TRANSACTION): delete the stock row, then the product; blocked if it is in an order
 mysqli_begin_transaction($conn);
 
 try {
@@ -25,7 +27,6 @@ try {
     mysqli_commit($conn);
     $_SESSION['success'] = 'product deleted';
 } catch (mysqli_sql_exception $e) {
-    // this happens when the product is already in a customer's order
     mysqli_rollback($conn);
     $_SESSION['message'] = 'This product cannot be deleted because it is already in a customer order';
 }

@@ -1,12 +1,13 @@
 <?php
-// sets up the database on a new computer: imports database.sql with one click
+// SESSION + INCLUDES: load config.php without the database check ($setupPage)
 session_start();
 $setupPage = true;
 include('./includes/config.php');
 
+// FUNCTION CALL: find out what is wrong with the database
 $problem = databaseProblem($conn, $db_name);
 
-// the button only works when the database needs to be set up, so the store data cannot be reset by accident
+// IF block + TRY-CATCH: import database.sql when the button is clicked
 if (isset($_POST['install']) && $problem !== '') {
     try {
         importDatabase($conn);
@@ -15,7 +16,6 @@ if (isset($_POST['install']) && $problem !== '') {
         header("Location: setup.php");
         exit();
     }
-    // the old login is not in the new database
     $_SESSION = array();
     $_SESSION['success'] = 'the database is ready. you can login with admin@veloura.test / admin123 or customer@veloura.test / customer123';
     header("Location: user/login.php");
@@ -26,6 +26,7 @@ include('./includes/header.php');
 ?>
 <div class="container mt-4" style="max-width: 720px;">
     <?php include('./includes/alert.php'); ?>
+    <!-- CARD: database status and the setup button -->
     <div class="card">
         <div class="card-header">Database setup</div>
         <div class="card-body">

@@ -15,6 +15,33 @@ If MySQL has a password or another port on that computer, change it at the top o
 
 Accounts: admin `admin@veloura.test` / `admin123`, customer `customer@veloura.test` / `customer123`.
 
+## Demo data for the presentation
+
+`database.sql` also adds demo customers, orders and reviews (the block between `-- DEMO DATA START` and `-- DEMO DATA END`).
+Every demo customer uses the password `customer123`.
+
+| Customer | Email | What they have |
+|---|---|---|
+| Azmith | `azmith@veloura.test` | Completed order (products 9, 10, 16) with reviews on 9 and 10. **Product 16 has no review yet: use it to write a review live.** Also a shipped order |
+| Kirk | `kirk@veloura.test` | Completed online order (9, 14, 26) with 3 reviews, one marked "edited". A **pending** order: use it to show the admin status update, email and PDF |
+| Jasmine | `jasmine@veloura.test` | Completed order (18, 10) with 2 reviews. A **processing** order for product 25, so she cannot review 25 yet |
+| Paolo | `paolo@veloura.test` | Completed order (13, 20) with 2 reviews, and a cancelled order |
+| Marco | `marco@veloura.test` | **Deactivated**: logging in shows "your account has been deactivated". Has one completed order and a review |
+
+The reviews already contain filtered bad words (`****`), the same as when they go through `review/store.php`.
+The best product to show is **Mahogany Teakwood Candle** (`product/view.php?id=9`): 3 reviews, two of them filtered.
+
+Suggested run-through:
+
+1. **Search** on the home page (e.g. `candle`).
+2. **Bad-word filter:** log in as Azmith, open Vanilla Bean Tin Candle (`product/view.php?id=16`) and post a review with
+   bad words, e.g. `Gago ang bango nito, sobrang shitty ng box pero damn worth it.` It is saved as
+   `**** ang bango nito, sobrang **** ng box pero **** worth it.` Then change it with **Update review**.
+3. **Only buyers can review:** log in as Jasmine and open Room Mist Trio (`product/view.php?id=25`): no review form.
+4. **Login checks:** wrong password, empty fields, and Marco's deactivated account.
+5. **Admin:** log in as admin, open **Orders**, open Kirk's pending order and change its status (email with the PDF
+   receipt goes to Mailtrap). Then **Users**: deactivate/activate a user and change an active user's role.
+
 ## MP1 Product/Service CRUD
 
 | Requirement | Where |
@@ -68,6 +95,15 @@ or `type="number"`). Each error shows under its field.
 | Update the status of the order | `UPDATE orders SET status = ?` (cancelling returns the items to stock) |
 | PDF receipt attachment | FPDF in `admin/updateOrder.php`, attached with `addStringAttachment` |
 | Mailtrap | `includes/mail_config.php` (see `docs/EMAIL_SETUP.md`) |
+
+## Extra: payment method and customer cancel
+
+| Feature | Where |
+|---|---|
+| Choose cash on delivery or online payment at checkout | `cart/view_cart.php` (Payment form), checked in `cart/checkout.php` |
+| Online payment needs a reference number (6 to 30 letters or numbers) | `cart/checkout.php` validation, saved in `orders.reference_no` |
+| Payment shown to the customer and admin, and on the email and PDF | `user/myorders.php`, `admin/orders.php`, `admin/orderDetails.php`, `admin/updateOrder.php` |
+| Customer cancels a pending order (stock is returned) | Cancel order button on `user/myorders.php`, handled by `user/cancelOrder.php` |
 
 ## Unit 1 Database design
 

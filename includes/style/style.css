@@ -1,19 +1,499 @@
+/* ==========================================================================
+   VELOURA: white and cream theme (pure CSS, no JavaScript)
+   ========================================================================== */
+
+/* CSS VARIABLES: our colours and fonts, also given to Bootstrap */
+:root {
+    --cream: #fbf8f3;
+    --cream-deep: #f3ece1;
+    --white: #ffffff;
+    --ink: #2b2420;
+    --ink-soft: #5e534b;
+    --line: #e6dccf;
+    --accent: #8b6a45;
+    --accent-dark: #6f5334;
+    --accent-tint: #f4ece0;
+    --gold: #b88a3e;
+    --danger: #a23b2f;
+    --danger-tint: #fbefec;
+    --success: #4e6b47;
+    --success-tint: #eef3ea;
+    --font-heading: 'Cormorant Garamond', Georgia, serif;
+    --font-body: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+
+    --bs-body-bg: var(--cream);
+    --bs-body-color: var(--ink);
+    --bs-body-font-family: var(--font-body);
+    --bs-body-font-size: 0.95rem;
+    --bs-border-color: var(--line);
+    --bs-secondary-color: #6b5f56;
+    --bs-link-color-rgb: 139, 106, 69;
+    --bs-link-hover-color-rgb: 111, 83, 52;
+    --bs-primary-rgb: 139, 106, 69;
+    --bs-secondary-rgb: 107, 95, 86;
+    --bs-success-rgb: 78, 107, 71;
+    --bs-danger-rgb: 162, 59, 47;
+}
+
+/* CSS: page background, text and links */
 body {
-    background-color: #faf8f6;
+    background-color: var(--cream);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.6;
 }
 
-h1, h2, h3 {
-    font-family: Georgia, serif;
+a {
+    color: var(--accent);
+    text-underline-offset: 3px;
 }
 
-/* homepage banner with the looping video */
+a:hover {
+    color: var(--accent-dark);
+}
+
+/* CSS: serif font for headings */
+h1, h2, h3, h4, .card-header {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.01em;
+}
+
+h2 {
+    font-size: 2.1rem;
+}
+
+.page-title {
+    font-size: clamp(2.2rem, 5vw, 3rem);
+    text-align: center;
+    margin: 1rem 0 2rem;
+}
+
+.empty-note {
+    text-align: center;
+    color: var(--ink-soft);
+}
+
+/* CSS: keyboard focus ring on everything clickable */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+.btn:focus-visible,
+.nav-toggle:focus-visible + .navbar-toggler {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+/* --------------------------------------------------------------------------
+   NAVBAR
+   -------------------------------------------------------------------------- */
+.site-nav {
+    background-color: var(--white);
+    border-bottom: 1px solid var(--line);
+    padding: 0.9rem 0;
+}
+
+.site-nav .navbar-brand {
+    font-family: var(--font-heading);
+    font-size: 1.9rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink);
+}
+
+.site-nav .nav-link {
+    font-size: 0.78rem;
+    white-space: nowrap;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    transition: color 0.2s;
+}
+
+.site-nav .nav-link:hover {
+    color: var(--accent);
+}
+
+.site-nav .nav-user {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.85rem;
+}
+
+.nav-search .form-control {
+    min-width: 0;
+    padding: 0.45rem 0.8rem;
+}
+
+.nav-search .btn {
+    padding: 0.45rem 0.9rem;
+}
+
+/* CSS-ONLY MENU: hide the checkbox; when it is ticked, show the menu on small screens */
+.nav-toggle {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+}
+
+.site-nav .navbar-toggler {
+    border-color: var(--line);
+    cursor: pointer;
+    margin: 0;
+}
+
+.nav-toggle:checked ~ .navbar-collapse {
+    display: block;
+}
+
+@media (max-width: 1199.98px) {
+    .site-nav .navbar-collapse {
+        padding-top: 0.75rem;
+    }
+
+    .nav-search {
+        margin: 0.5rem 0;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   BUTTONS
+   -------------------------------------------------------------------------- */
+.btn {
+    --bs-btn-font-size: 0.75rem;
+    --bs-btn-font-weight: 600;
+    --bs-btn-padding-x: 1.4rem;
+    --bs-btn-padding-y: 0.7rem;
+    --bs-btn-border-radius: 2px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.btn-sm {
+    --bs-btn-padding-x: 0.8rem;
+    --bs-btn-padding-y: 0.4rem;
+    --bs-btn-font-size: 0.7rem;
+}
+
+.btn-lg {
+    --bs-btn-padding-x: 1.8rem;
+    --bs-btn-padding-y: 0.85rem;
+    --bs-btn-font-size: 0.8rem;
+}
+
+.btn-primary,
+.btn-success {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--accent);
+    --bs-btn-border-color: var(--accent);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--accent-dark);
+    --bs-btn-hover-border-color: var(--accent-dark);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--accent-dark);
+    --bs-btn-active-border-color: var(--accent-dark);
+}
+
+.btn-secondary,
+.btn-light {
+    --bs-btn-color: var(--ink);
+    --bs-btn-bg: var(--cream-deep);
+    --bs-btn-border-color: var(--line);
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-hover-bg: #ebe1d3;
+    --bs-btn-hover-border-color: #d9cbb8;
+    --bs-btn-active-color: var(--ink);
+    --bs-btn-active-bg: #ebe1d3;
+    --bs-btn-active-border-color: #d9cbb8;
+}
+
+.btn-outline-primary,
+.btn-outline-dark,
+.btn-outline-success {
+    --bs-btn-color: var(--ink);
+    --bs-btn-bg: transparent;
+    --bs-btn-border-color: var(--ink);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--ink);
+    --bs-btn-hover-border-color: var(--ink);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--ink);
+    --bs-btn-active-border-color: var(--ink);
+}
+
+.btn-danger {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--danger);
+    --bs-btn-border-color: var(--danger);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #862f25;
+    --bs-btn-hover-border-color: #862f25;
+    --bs-btn-active-bg: #862f25;
+}
+
+.btn-outline-danger {
+    --bs-btn-color: var(--danger);
+    --bs-btn-border-color: #d9aaa3;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--danger);
+    --bs-btn-hover-border-color: var(--danger);
+    --bs-btn-active-bg: var(--danger);
+}
+
+/* CSS: small round icon buttons (edit, delete, view) in the admin tables */
+.action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.action-icon:hover {
+    background-color: var(--accent-tint);
+    color: var(--accent-dark);
+}
+
+.action-icon.icon-danger {
+    color: var(--danger);
+}
+
+.action-icon.icon-danger:hover {
+    background-color: var(--danger-tint);
+}
+
+/* HTML DETAILS: "are you sure?" box without JavaScript */
+details.confirm {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+details.confirm.text-end {
+    display: block;
+}
+
+details.confirm > summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+details.confirm > summary::-webkit-details-marker {
+    display: none;
+}
+
+.confirm-box {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.6rem 0.8rem;
+    background-color: var(--danger-tint);
+    border: 1px solid #ebcbc5;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: var(--danger);
+}
+
+details.confirm.text-end .confirm-box {
+    justify-content: flex-end;
+}
+
+/* --------------------------------------------------------------------------
+   FORMS
+   -------------------------------------------------------------------------- */
+.form-control,
+.form-select {
+    background-color: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 0.65rem 0.9rem;
+    color: var(--ink);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 0.2rem rgba(139, 106, 69, 0.15);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+    background-color: var(--cream-deep);
+}
+
+.form-check-input:checked {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.form-check-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 0.2rem rgba(139, 106, 69, 0.15);
+}
+
+.form-label,
+.form-card label {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin-bottom: 0.35rem;
+}
+
+/* CSS: white box around the add/edit, login and register forms */
+.form-card,
+.auth-card {
+    background-color: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 2rem;
+}
+
+.auth-card {
+    max-width: 480px;
+    margin: 3rem auto 0;
+}
+
+.auth-card h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 575.98px) {
+    .form-card,
+    .auth-card {
+        padding: 1.25rem;
+    }
+}
+
+/* CSS: small quantity boxes on the product cards, product page and cart */
+input[name="product_qty"],
+.qty-input {
+    display: inline-block;
+    width: 4rem;
+    padding: 0.4rem;
+    text-align: center;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    background-color: var(--white);
+}
+
+/* CSS: payment box; the reference number shows only when "Online payment" is checked */
+.payment-card {
+    max-width: 560px;
+}
+
+.payment-options .form-check-input {
+    margin: 0 0.5rem 0 0;
+    vertical-align: middle;
+}
+
+.payment-options .form-check-label {
+    display: inline-block;
+    margin-bottom: 0.6rem;
+    vertical-align: middle;
+}
+
+.reference-box {
+    display: none;
+    margin-top: 0.5rem;
+}
+
+#payOnline:checked ~ .reference-box {
+    display: block;
+}
+
+/* --------------------------------------------------------------------------
+   CARDS, TABLES, ALERTS, BADGES
+   -------------------------------------------------------------------------- */
+.card {
+    background-color: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+}
+
+.card-header {
+    background-color: var(--cream-deep);
+    border-bottom: 1px solid var(--line);
+    font-size: 1.3rem;
+}
+
+.table {
+    --bs-table-bg: var(--white);
+    --bs-table-striped-bg: #faf6f0;
+    --bs-table-border-color: var(--line);
+    --bs-table-color: var(--ink);
+    border: 1px solid var(--line);
+}
+
+.table thead th {
+    background-color: var(--cream-deep);
+    color: var(--ink-soft);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.table img {
+    object-fit: cover;
+    border-radius: 2px;
+}
+
+.alert {
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.alert-danger {
+    --bs-alert-color: var(--danger);
+    --bs-alert-bg: var(--danger-tint);
+    --bs-alert-border-color: #ebcbc5;
+}
+
+.alert-success,
+.alert-primary {
+    --bs-alert-color: var(--success);
+    --bs-alert-bg: var(--success-tint);
+    --bs-alert-border-color: #cfdcc9;
+}
+
+.badge {
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    border-radius: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   HOME PAGE
+   -------------------------------------------------------------------------- */
+/* CSS: homepage banner box */
 .hero {
     position: relative;
-    height: 380px;
+    min-height: 440px;
     overflow: hidden;
-    background-color: #1a120b;
+    background-color: var(--cream-deep);
+    border-bottom: 1px solid var(--line);
 }
 
+/* CSS: the video fills the whole banner */
 .hero-video {
     position: absolute;
     top: 0;
@@ -23,7 +503,7 @@ h1, h2, h3 {
     object-fit: cover;
 }
 
-/* dark layer over the video so the white text is easy to read */
+/* CSS: cream layer over the video so the dark text is easy to read */
 .hero::after {
     content: "";
     position: absolute;
@@ -31,93 +511,182 @@ h1, h2, h3 {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.45);
+    background: linear-gradient(180deg, rgba(251, 248, 243, 0.78), rgba(251, 248, 243, 0.9));
 }
 
+/* CSS: centred title and search box on the banner */
 .hero-content {
     position: relative;
     z-index: 1;
-    height: 100%;
+    min-height: 440px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     text-align: center;
-    color: #fff;
-    padding: 0 15px;
+    color: var(--ink);
+    padding: 3rem 16px;
+}
+
+.hero-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
 }
 
 .hero-content h1 {
-    font-size: 3rem;
+    font-size: clamp(2.8rem, 7vw, 4.6rem);
+    margin-bottom: 0.5rem;
 }
 
 .hero-content p {
-    font-size: 1.2rem;
-    margin-bottom: 25px;
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    margin-bottom: 2rem;
 }
 
-/* people who turned off animations in their system settings see a still banner */
+.hero-search .form-control {
+    padding: 0.8rem 1rem;
+}
+
+/* CSS MEDIA QUERY: hide the video for people who turned off animations */
 @media (prefers-reduced-motion: reduce) {
     .hero-video {
         display: none;
     }
 }
 
+.section-title {
+    font-size: 2.2rem;
+    text-align: center;
+    margin: 3rem 0 0.25rem;
+}
+
+.section-note {
+    text-align: center;
+    color: var(--ink-soft);
+    margin-bottom: 2rem;
+}
+
+/* CSS: product grid on the home page */
 ul.products {
     list-style: none;
     padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 24px;
 }
 
+/* CSS: one product card */
 ul.products li {
-    width: 230px;
-    background: #fff;
-    border: 1px solid #e5e0da;
-    border-radius: 8px;
-    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding-bottom: 18px;
     text-align: center;
+    overflow: hidden;
+    transition: box-shadow 0.25s, border-color 0.25s;
 }
 
+ul.products li:hover {
+    border-color: #d9cbb8;
+    box-shadow: 0 12px 30px rgba(43, 36, 32, 0.08);
+}
+
+/* CSS: product name on the card */
 ul.products li h3 {
-    font-size: 1.05rem;
-    min-height: 2.6em;
+    font-size: 1.35rem;
+    line-height: 1.2;
+    min-height: 2.4em;
+    padding: 0 14px;
+    margin-bottom: 0.35rem;
 }
 
 ul.products li h3 a {
-    color: #333;
+    color: var(--ink);
     text-decoration: none;
 }
 
+ul.products li h3 a:hover {
+    color: var(--accent);
+}
+
+ul.products li p {
+    padding: 0 14px;
+    font-size: 0.85rem;
+}
+
+ul.products li form {
+    margin-top: auto;
+    padding: 0 14px;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+}
+
+/* CSS: square product photo on the card */
+.product-thumb {
+    aspect-ratio: 1 / 1;
+    background-color: var(--cream-deep);
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.product-thumb a {
+    display: block;
+    height: 100%;
+}
+
 .product-thumb img {
-    width: 150px;
-    height: 150px;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    border-radius: 6px;
+    transition: transform 0.4s;
 }
 
+ul.products li:hover .product-thumb img {
+    transform: scale(1.04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ul.products li:hover .product-thumb img {
+        transform: none;
+    }
+}
+
+/* CSS: price colour */
 .price {
-    color: #8a5a44;
-    font-weight: bold;
+    color: var(--accent);
+    font-weight: 600;
 }
 
+/* --------------------------------------------------------------------------
+   PRODUCT PAGE, REVIEWS, PROFILE
+   -------------------------------------------------------------------------- */
+/* CSS: big photo on the product page */
 .product-photo {
     width: 100%;
-    max-width: 400px;
-    height: 400px;
+    max-width: 460px;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
-    border-radius: 8px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background-color: var(--white);
 }
 
+/* CSS: small extra photos */
 .extra-photo {
-    width: 100px;
-    height: 100px;
+    width: 96px;
+    height: 96px;
     object-fit: cover;
-    border-radius: 6px;
-    border: 1px solid #ddd;
+    border-radius: 4px;
+    border: 1px solid var(--line);
 }
 
+/* CSS: round profile photo in the navbar and reviews */
 .nav-photo {
     width: 28px;
     height: 28px;
@@ -125,18 +694,49 @@ ul.products li h3 a {
     object-fit: cover;
 }
 
+/* CSS: round photo on the profile and user pages */
 .profile-photo {
     width: 120px;
     height: 120px;
     border-radius: 50%;
     object-fit: cover;
+    border: 3px solid var(--white);
+    box-shadow: 0 0 0 1px var(--line);
 }
 
+/* CSS: star rating colour */
 .stars {
-    color: #f5a623;
+    color: var(--gold);
 }
 
+/* CSS: line between reviews */
 .review {
-    border-bottom: 1px solid #e5e0da;
-    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    padding: 14px 0;
+}
+
+/* --------------------------------------------------------------------------
+   FOOTER
+   -------------------------------------------------------------------------- */
+.site-footer {
+    margin-top: 5rem;
+    padding: 2.5rem 16px;
+    background-color: var(--white);
+    border-top: 1px solid var(--line);
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+}
+
+.site-footer p {
+    margin-bottom: 0.25rem;
+}
+
+.site-footer .footer-brand {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ink);
 }

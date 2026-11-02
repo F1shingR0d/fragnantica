@@ -1,9 +1,10 @@
 <?php
+// SESSION + INCLUDES: start the session, connect, load functions (no login needed)
 session_start();
 include('../includes/config.php');
 include('../includes/functions.php');
 
-// anyone can view a product, no login needed
+// SELECT query (JOIN): load the product, go home if it does not exist
 $product_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 $sql = "SELECT p.*, c.name AS category, s.quantity AS qty
         FROM product p INNER JOIN category c USING (category_id) INNER JOIN stock s USING (product_id)
@@ -16,16 +17,17 @@ if (!$product) {
     exit();
 }
 
-// the other photos
+// SELECT query: the extra photos
 $photo_result = mysqli_execute_query($conn, "SELECT img_path FROM product_images WHERE product_id = ?", [$product_id]);
 
-// the reviews of this product
+// SELECT query (JOIN): the reviews with the reviewer's name and photo
 $sql = "SELECT r.user_id, r.rating, r.comment, r.created_at, r.updated_at, u.name, u.img_path
         FROM review r INNER JOIN users u USING (user_id)
         WHERE r.product_id = ? ORDER BY r.created_at DESC";
 $review_result = mysqli_execute_query($conn, $sql, [$product_id]);
 $reviewCount = mysqli_num_rows($review_result);
 
+// IF block + AVG query: the average rating
 $average = 0;
 if ($reviewCount > 0) {
     $sql = "SELECT AVG(rating) AS average FROM review WHERE product_id = ?";
@@ -33,7 +35,7 @@ if ($reviewCount > 0) {
     $average = round($row['average'], 1);
 }
 
-// only a customer who bought this product (a completed order) can review it
+// IF block + SELECT queries: can this user review, and do they already have a review
 $canReview = false;
 $myReview = null;
 if (isset($_SESSION['user_id'])) {
@@ -49,12 +51,13 @@ include('../includes/header.php');
 ?>
 <div class="container mt-4">
     <?php include('../includes/alert.php'); ?>
+    <!-- PRODUCT DETAILS: photos on the left, info and Add to Cart on the right -->
     <div class="row">
         <div class="col-md-5">
-            <img src="<?php echo $product['img_path']; ?>" class="product-photo">
+            <img src="<?php echo htmlspecialchars($product['img_path']); ?>" class="product-photo">
             <div class="mt-2">
                 <?php
-                // click a photo to see it bigger
+                // WHILE loop: the extra photos, click one to see it bigger
                 while ($photo = mysqli_fetch_assoc($photo_result)) {
                     echo "<a href='{$photo['img_path']}' target='_blank'><img src='{$photo['img_path']}' class='extra-photo me-2 mb-2'></a>";
                 }
@@ -62,16 +65,18 @@ include('../includes/header.php');
             </div>
         </div>
         <div class="col-md-7">
-            <p class="text-muted mb-1"><?php echo $product['category']; ?></p>
-            <h2><?php echo $product['name']; ?></h2>
-            <p><strong><?php echo $product['brand']; ?></strong> &middot; <?php echo $product['size']; ?></p>
+            <p class="text-muted mb-1"><?php echo htmlspecialchars($product['category']); ?></p>
+            <h2><?php echo htmlspecialchars($product['name']); ?></h2>
+            <p><strong><?php echo htmlspecialchars($product['brand']); ?></strong> &middot; <?php echo htmlspecialchars($product['size']); ?></p>
             <p class="price fs-4"><?php echo peso($product['sell_price']); ?></p>
-            <p><?php echo $product['description']; ?></p>
+            <p><?php echo htmlspecialchars($product['description']); ?></p>
             <?php
+            // IF block: average rating and number of reviews
             if ($reviewCount > 0) {
                 echo "<p><span class='stars'><i class='fa-solid fa-star'></i></span> {$average} out of 5 ({$reviewCount} reviews)</p>";
             }
 
+            // IF-ELSE block: Add to Cart form when in stock, otherwise "Out of stock"
             if ($product['qty'] > 0) {
                 echo "<p class='text-success'>{$product['qty']} in stock</p>";
                 echo "<form method='POST' action='../cart/cart_update.php'>
@@ -87,10 +92,12 @@ include('../includes/header.php');
         </div>
     </div>
 
+    <!-- REVIEWS SECTION: review form on the left, review list on the right -->
     <h3 class="mt-5">Customer Reviews</h3>
     <div class="row">
         <div class="col-md-5">
             <?php
+            // IF-ELSE IF-ELSE block: review form, "only buyers" note, or login link
             if ($canReview) {
                 $rating = 0;
                 $comment = '';
@@ -100,7 +107,6 @@ include('../includes/header.php');
                     $comment = $myReview['comment'];
                     $button = 'Update review';
                 }
-                // if saving failed, show what the customer typed instead
                 if (isset($_SESSION['reviewRating'])) {
                     $rating = $_SESSION['reviewRating'];
                     $comment = $_SESSION['reviewComment'];
@@ -115,6 +121,7 @@ include('../includes/header.php');
                             <select name="rating" id="rating" class="form-control">
                                 <option value="">Choose a rating</option>
                                 <?php
+                                // FOR loop: rating options from 5 down to 1
                                 for ($i = 5; $i >= 1; $i--) {
                                     if ($rating == $i) {
                                         echo "<option value='{$i}' selected>{$i} star(s)</option>";
@@ -131,15 +138,15 @@ include('../includes/header.php');
                                 }
                                 ?></small><br>
                             <label for="comment">Your review</label>
-                            <textarea name="comment" id="comment" class="form-control" rows="4"><?php echo $comment; ?></textarea>
+                            <textarea name="comment" id="comment" class="form-control" rows="4"><?php echo htmlspecialchars($comment); ?></textarea>
                             <small class="text-danger"><?php
                                 if (isset($_SESSION['commentError'])) {
                                     echo $_SESSION['commentError'];
                                     unset($_SESSION['commentError']);
                                 }
                                 ?></small><br>
-                            <input type="hidden" name="product_id" value="<?php echo $product['product_id']; ?>" />
-                            <button type="submit" class="btn btn-primary" name="submit"><?php echo $button; ?></button>
+                            <input type="hidden" name="product_id" value="<?php echo htmlspecialchars($product['product_id']); ?>" />
+                            <button type="submit" class="btn btn-primary" name="submit"><?php echo htmlspecialchars($button); ?></button>
                         </form>
                     </div>
                 </div>
@@ -153,11 +160,14 @@ include('../includes/header.php');
         </div>
         <div class="col-md-7">
             <?php
+            // IF block: message when there are no reviews
             if ($reviewCount === 0) {
                 echo "<p class='text-muted'>No reviews yet.</p>";
             }
+            // WHILE loop: one review with stars, photo and date
             while ($row = mysqli_fetch_assoc($review_result)) {
                 $stars = '';
+                // FOR loop: filled and empty stars
                 for ($i = 1; $i <= 5; $i++) {
                     if ($i <= $row['rating']) {
                         $stars .= "<i class='fa-solid fa-star'></i>";

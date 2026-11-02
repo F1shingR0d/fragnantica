@@ -1,9 +1,17 @@
 <?php
+// SESSION + INCLUDES: start the session, connect, load functions, admin only
 session_start();
 include('../../includes/config.php');
 include('../../includes/functions.php');
 include('../../includes/adminCheck.php');
 
+// IF block: only the Add User form can open this script
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: create.php");
+    exit();
+}
+
+// VARIABLES: read the form and remember the typed name and email
 $name = trim(strip_tags($_POST['name']));
 $email = trim($_POST['email']);
 $password = trim($_POST['password']);
@@ -11,7 +19,7 @@ $role = $_POST['role'];
 $_SESSION['regName'] = $name;
 $_SESSION['regEmail'] = $email;
 
-//validation
+// IF-ELSE IF blocks (validation): name, email, password length, role
 if ($name === '') {
     $_SESSION['message'] = 'please enter the name';
     header("Location: create.php");
@@ -30,6 +38,7 @@ if ($name === '') {
     exit();
 }
 
+// IF block + SELECT query: stop if the email is already registered
 $result = mysqli_execute_query($conn, "SELECT user_id FROM users WHERE email = ? LIMIT 1", [$email]);
 if (mysqli_num_rows($result) > 0) {
     $_SESSION['message'] = 'this email is already registered';
@@ -37,11 +46,10 @@ if (mysqli_num_rows($result) > 0) {
     exit();
 }
 
-// the photo is optional
+// IF block: save the optional photo in user/images if it is a JPG or PNG
 $target = null;
 if (isset($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE) {
     if (isImage($_FILES['photo']['type'])) {
-        // user photos are kept in the user/images folder
         $target = savePhoto($_FILES['photo']['tmp_name'], $_FILES['photo']['name'], '../../user/');
     } else {
         $_SESSION['message'] = 'wrong file type, please use JPG or PNG';
@@ -50,6 +58,7 @@ if (isset($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE)
     }
 }
 
+// TRY-CATCH block + prepared INSERT: hash the password and save the user
 try {
     $password = password_hash($password, PASSWORD_BCRYPT);
 

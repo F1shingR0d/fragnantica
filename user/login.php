@@ -1,14 +1,16 @@
 <?php
+// SESSION + INCLUDES: start the session, connect to the database, load functions
 session_start();
 include("../includes/config.php");
 include("../includes/functions.php");
 
+// IF block (form submitted): read the email and password
 if (isset($_POST['submit'])) {
     $email = trim($_POST['email']);
     $password = trim($_POST['password']);
     $hasErrors = false;
 
-    // validation (PHP only, the form has novalidate)
+    // IF-ELSE blocks (validation): check the fields in PHP
     if ($email === '') {
         $_SESSION['emailError'] = 'Please enter your email';
         $hasErrors = true;
@@ -21,12 +23,14 @@ if (isset($_POST['submit'])) {
         $hasErrors = true;
     }
 
+    // IF block + prepared SELECT: find the user by email
     if (!$hasErrors) {
         $sql = "SELECT user_id, email, password, img_path, role, status FROM users WHERE email = ? LIMIT 1";
         $result = mysqli_execute_query($conn, $sql, [$email]);
 
         if ($result->num_rows === 1) {
             $row = mysqli_fetch_assoc($result);
+            // IF-ELSE block: wrong password, deactivated account, or log in and save the user in the session
             if (!password_verify($password, $row['password'])) {
                 $_SESSION['message'] = 'wrong email or password';
             } else if ($row['status'] !== 'active') {
@@ -51,16 +55,18 @@ if (isset($_POST['submit'])) {
 
 include("../includes/header.php");
 ?>
-<div class="row col-md-6 mx-auto mt-4 px-3">
-    <h2>Login</h2>
+<div class="container">
+<div class="auth-card">
+    <h2>Welcome back</h2>
     <?php include("../includes/alert.php"); ?>
-    <!-- novalidate: the browser does not check the form, PHP does -->
+    <!-- HTML FORM: login form, novalidate so only PHP checks it -->
     <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" novalidate>
-        <!-- Email input -->
         <div class="form-outline mb-4">
             <label class="form-label" for="email">Email address</label>
-            <input type="text" id="email" class="form-control" name="email" />
+            <input type="text" id="email" class="form-control" name="email"
+                value="<?php if (isset($email)) echo htmlspecialchars($email); ?>" />
             <small class="text-danger"><?php
+                // IF block: show the email error under the field
                 if (isset($_SESSION['emailError'])) {
                     echo $_SESSION['emailError'];
                     unset($_SESSION['emailError']);
@@ -68,11 +74,11 @@ include("../includes/header.php");
                 ?></small>
         </div>
 
-        <!-- Password input -->
         <div class="form-outline mb-4">
             <label class="form-label" for="password">Password</label>
             <input type="password" id="password" class="form-control" name="password" />
             <small class="text-danger"><?php
+                // IF block: show the password error under the field
                 if (isset($_SESSION['passwordError'])) {
                     echo $_SESSION['passwordError'];
                     unset($_SESSION['passwordError']);
@@ -80,14 +86,13 @@ include("../includes/header.php");
                 ?></small>
         </div>
 
-        <!-- Submit button -->
-        <button type="submit" class="btn btn-primary btn-block mb-4" name="submit">Sign in</button>
+        <button type="submit" class="btn btn-primary w-100 mb-4" name="submit">Sign in</button>
 
-        <!-- Register buttons -->
         <div class="text-center">
-            <p>Not a member? <a href="register.php">Register</a></p>
+            <p class="mb-0">Not a member? <a href="register.php">Register</a></p>
         </div>
     </form>
+</div>
 </div>
 <?php
 include("../includes/footer.php");

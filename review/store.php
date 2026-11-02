@@ -1,9 +1,11 @@
 <?php
+// SESSION + INCLUDES: start the session, connect, load functions, require login
 session_start();
 include('../includes/config.php');
 include('../includes/functions.php');
 include('../includes/loginCheck.php');
 
+// IF block (form submitted): read the review form
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     $product_id = (int)$_POST['product_id'];
     $user_id = $_SESSION['user_id'];
@@ -11,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     $comment = trim(strip_tags($_POST['comment']));
     $back = "../product/view.php?id={$product_id}";
 
-    // only a customer who bought this product (a completed order) can review it
+    // IF block + SELECT query (view): only customers with a completed order of this product can review
     $sql = "SELECT order_id FROM order_details_view WHERE user_id = ? AND product_id = ? AND status = 'completed' LIMIT 1";
     $result = mysqli_execute_query($conn, $sql, [$user_id, $product_id]);
     if (mysqli_num_rows($result) === 0) {
@@ -20,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
         exit();
     }
 
-    // validation
+    // IF blocks (validation): rating 1 to 5, comment not empty and 1000 characters or less
     $hasErrors = false;
     if (filter_var($rating, FILTER_VALIDATE_INT) === false || $rating < 1 || $rating > 5) {
         $_SESSION['ratingError'] = 'Please choose a rating from 1 to 5';
@@ -40,14 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
         exit();
     }
 
-    // mask bad words, e.g. "shit" becomes "****"
+    // FUNCTION CALL: replace bad words with ****
     $comment = censor($comment);
 
+    // IF-ELSE block: UPDATE the review if it exists, otherwise INSERT a new one
     $sql = "SELECT review_id FROM review WHERE user_id = ? AND product_id = ? LIMIT 1";
     $result = mysqli_execute_query($conn, $sql, [$user_id, $product_id]);
 
     if (mysqli_num_rows($result) === 1) {
-        // the customer already reviewed this product: update the review
         $sql = "UPDATE review SET rating = ?, comment = ?, updated_at = NOW() WHERE user_id = ? AND product_id = ?";
         mysqli_execute_query($conn, $sql, [$rating, $comment, $user_id, $product_id]);
         $_SESSION['success'] = 'your review was updated';
@@ -59,4 +61,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     header("Location: {$back}");
     exit();
 }
+// REDIRECT: opened without the form, go to the home page
 header("Location: ../index.php");

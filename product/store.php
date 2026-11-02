@@ -1,9 +1,11 @@
 <?php
+// SESSION + INCLUDES: start the session, connect, load functions, admin only
 session_start();
 include('../includes/config.php');
 include('../includes/functions.php');
 include('../includes/adminCheck.php');
 
+// IF block (form submitted): read and clean the form fields
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     $name = trim(strip_tags($_POST['name']));
     $category_id = trim($_POST['category_id']);
@@ -15,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     $qtyInput = trim($_POST['quantity']);
     $hasErrors = false;
 
-    // validation (PHP only, the form has novalidate)
+    // IF-ELSE blocks (validation): check every field in PHP
     if ($name === '') {
         $_SESSION['nameError'] = 'Please input the product name';
         $hasErrors = true;
@@ -58,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
         $hasErrors = true;
     }
 
-    // the main photo is required
+    // IF-ELSE block: the main photo is required and must be JPG or PNG
     if (!isset($_FILES['img_path']) || $_FILES['img_path']['error'] === UPLOAD_ERR_NO_FILE) {
         $_SESSION['imageError'] = 'Please select an image';
         $hasErrors = true;
@@ -67,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
         $hasErrors = true;
     }
 
-    // more photos are optional, but they must be JPG or PNG
+    // IF block + FOREACH loop: extra photos are optional but must be JPG or PNG
     if (isset($_FILES['photos']) && $_FILES['photos']['name'][0] !== '') {
         foreach ($_FILES['photos']['type'] as $key => $type) {
             if (!isImage($type)) {
@@ -77,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
         }
     }
 
+    // IF block: keep the typed values and go back to the form
     if ($hasErrors) {
         $_SESSION['prodName'] = $name;
         $_SESSION['category'] = $category_id;
@@ -90,28 +93,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
         exit();
     }
 
+    // TYPE CASTING: turn the text inputs into numbers
     $cost = (float)$costInput;
     $sell = (float)$sellInput;
     $qty = (int)$qtyInput;
     $category_id = (int)$category_id;
 
-    // save the main photo
+    // FUNCTION CALL: save the main photo
     $target = savePhoto($_FILES['img_path']['tmp_name'], $_FILES['img_path']['name']);
 
+    // TRY-CATCH block (TRANSACTION): save the product, its stock and extra photos together
     mysqli_begin_transaction($conn);
     try {
+        // PREPARED STATEMENT (INSERT): the product
         $sql = "INSERT INTO product (category_id, name, brand, size, description, cost_price, sell_price, img_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt1 = mysqli_prepare($conn, $sql);
         mysqli_stmt_bind_param($stmt1, 'issssdds', $category_id, $name, $brand, $size, $desc, $cost, $sell, $target);
         mysqli_stmt_execute($stmt1);
         $product_id = mysqli_insert_id($conn);
 
+        // PREPARED STATEMENT (INSERT): its stock
         $sql = "INSERT INTO stock (product_id, quantity) VALUES (?, ?)";
         $stmt2 = mysqli_prepare($conn, $sql);
         mysqli_stmt_bind_param($stmt2, 'ii', $product_id, $qty);
         mysqli_stmt_execute($stmt2);
 
-        // save the other photos
+        // IF block + FOREACH loop: save each extra photo in product_images
         if (isset($_FILES['photos']) && $_FILES['photos']['name'][0] !== '') {
             $sql = "INSERT INTO product_images (product_id, img_path) VALUES (?, ?)";
             $stmt3 = mysqli_prepare($conn, $sql);

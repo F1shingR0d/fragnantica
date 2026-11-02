@@ -1,22 +1,24 @@
 <?php
+// SESSION + INCLUDES: start the session, connect, admin only, show the navbar
 session_start();
 include('../includes/config.php');
 include('../includes/adminCheck.php');
 include('../includes/header.php');
 
-// drop down select
+// SELECT query: categories for the drop-down list
 $category_result = mysqli_query($conn, "SELECT category_id, name FROM category ORDER BY name");
 ?>
 <div class="container mt-4">
     <h2>Add Product</h2>
     <?php include('../includes/alert.php'); ?>
-    <!-- novalidate: the browser does not check the form, store.php does -->
-    <form method="POST" action="store.php" enctype="multipart/form-data" novalidate>
+    <!-- HTML FORM: add product, novalidate so only store.php checks it -->
+    <form method="POST" action="store.php" enctype="multipart/form-data" class="form-card" novalidate>
         <div class="form-group">
             <label for="name">Product Name</label>
             <input type="text" class="form-control" id="name" placeholder="Enter product name" name="name"
-                value="<?php if (isset($_SESSION['prodName'])) echo $_SESSION['prodName']; ?>" />
+                value="<?php if (isset($_SESSION['prodName'])) echo htmlspecialchars($_SESSION['prodName']); ?>" />
             <small class="text-danger"><?php
+                // IF block: show the field's error message once (same for every field below)
                 if (isset($_SESSION['nameError'])) {
                     echo $_SESSION['nameError'];
                     unset($_SESSION['nameError']);
@@ -27,6 +29,7 @@ $category_result = mysqli_query($conn, "SELECT category_id, name FROM category O
             <select name="category_id" id="category" class="form-control">
                 <option value="">Choose a category</option>
                 <?php
+                // WHILE loop: one option per category, keeps the chosen one selected
                 while ($row = mysqli_fetch_assoc($category_result)) {
                     if (isset($_SESSION['category']) && $_SESSION['category'] == $row['category_id']) {
                         echo "<option value='{$row['category_id']}' selected>{$row['name']}</option>";
@@ -45,7 +48,7 @@ $category_result = mysqli_query($conn, "SELECT category_id, name FROM category O
 
             <label for="brand">Brand</label>
             <input type="text" class="form-control" id="brand" placeholder="Enter brand" name="brand"
-                value="<?php if (isset($_SESSION['brand'])) echo $_SESSION['brand']; ?>" />
+                value="<?php if (isset($_SESSION['brand'])) echo htmlspecialchars($_SESSION['brand']); ?>" />
             <small class="text-danger"><?php
                 if (isset($_SESSION['brandError'])) {
                     echo $_SESSION['brandError'];
@@ -55,7 +58,7 @@ $category_result = mysqli_query($conn, "SELECT category_id, name FROM category O
 
             <label for="size">Size</label>
             <input type="text" class="form-control" id="size" placeholder="e.g. 100 ml" name="size"
-                value="<?php if (isset($_SESSION['size'])) echo $_SESSION['size']; ?>" />
+                value="<?php if (isset($_SESSION['size'])) echo htmlspecialchars($_SESSION['size']); ?>" />
             <small class="text-danger"><?php
                 if (isset($_SESSION['sizeError'])) {
                     echo $_SESSION['sizeError'];
@@ -64,7 +67,7 @@ $category_result = mysqli_query($conn, "SELECT category_id, name FROM category O
                 ?></small><br>
 
             <label for="desc">Description</label>
-            <textarea class="form-control" id="desc" placeholder="Enter product description" name="description" rows="3"><?php if (isset($_SESSION['desc'])) echo $_SESSION['desc']; ?></textarea>
+            <textarea class="form-control" id="desc" placeholder="Enter product description" name="description" rows="3"><?php if (isset($_SESSION['desc'])) echo htmlspecialchars($_SESSION['desc']); ?></textarea>
             <small class="text-danger"><?php
                 if (isset($_SESSION['descError'])) {
                     echo $_SESSION['descError'];
@@ -74,7 +77,7 @@ $category_result = mysqli_query($conn, "SELECT category_id, name FROM category O
 
             <label for="cost">Cost Price</label>
             <input type="text" class="form-control" id="cost" placeholder="Enter cost price" name="cost_price"
-                value="<?php if (isset($_SESSION['cost'])) echo $_SESSION['cost']; ?>" />
+                value="<?php if (isset($_SESSION['cost'])) echo htmlspecialchars($_SESSION['cost']); ?>" />
             <small class="text-danger"><?php
                 if (isset($_SESSION['costError'])) {
                     echo $_SESSION['costError'];
@@ -84,7 +87,7 @@ $category_result = mysqli_query($conn, "SELECT category_id, name FROM category O
 
             <label for="sell">Sell Price</label>
             <input type="text" class="form-control" id="sell" placeholder="Enter sell price" name="sell_price"
-                value="<?php if (isset($_SESSION['sell'])) echo $_SESSION['sell']; ?>" />
+                value="<?php if (isset($_SESSION['sell'])) echo htmlspecialchars($_SESSION['sell']); ?>" />
             <small class="text-danger"><?php
                 if (isset($_SESSION['sellError'])) {
                     echo $_SESSION['sellError'];
@@ -94,7 +97,7 @@ $category_result = mysqli_query($conn, "SELECT category_id, name FROM category O
 
             <label for="qty">Quantity</label>
             <input type="text" class="form-control" id="qty" placeholder="0" name="quantity"
-                value="<?php if (isset($_SESSION['qty'])) echo $_SESSION['qty']; ?>" />
+                value="<?php if (isset($_SESSION['qty'])) echo htmlspecialchars($_SESSION['qty']); ?>" />
             <small class="text-danger"><?php
                 if (isset($_SESSION['qtyError'])) {
                     echo $_SESSION['qtyError'];
@@ -125,7 +128,7 @@ $category_result = mysqli_query($conn, "SELECT category_id, name FROM category O
     </form>
 </div>
 <?php
-// the typed values are shown once
+// UNSET: forget the typed values after showing them once
 unset($_SESSION['prodName'], $_SESSION['category'], $_SESSION['brand'], $_SESSION['size'], $_SESSION['desc'], $_SESSION['cost'], $_SESSION['sell'], $_SESSION['qty']);
 include('../includes/footer.php');
 ?>

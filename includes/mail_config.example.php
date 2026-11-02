@@ -1,15 +1,9 @@
 <?php
-// Mailtrap login for sending emails. Copy this file to includes/mail_config.php
-// and fill in your own details. mail_config.php is in .gitignore, so your password
-// never ends up on GitHub.
-//
-// Where to find them: mailtrap.io > Email Testing (Sandboxes) > your inbox >
-// Integration > SMTP. Copy "Username" and "Password" below.
-
+// CONSTANTS: Mailtrap SMTP login used to send the order emails (copy this file to mail_config.php)
 define('SMTP_HOST', 'sandbox.smtp.mailtrap.io');
 define('SMTP_PORT', 2525);
 define('SMTP_USERNAME', 'your-mailtrap-username');
 define('SMTP_PASSWORD', 'your-mailtrap-password');
 
-// the sender shown in the emails (Mailtrap's test inbox accepts any address)
+// CONSTANT: the sender address shown in the emails
 define('MAIL_FROM', 'no-reply@veloura.test');

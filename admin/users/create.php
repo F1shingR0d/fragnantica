@@ -1,4 +1,5 @@
 <?php
+// SESSION + INCLUDES: start the session, connect, admin only, show the navbar
 session_start();
 include('../../includes/config.php');
 include('../../includes/adminCheck.php');
@@ -8,16 +9,17 @@ include('../../includes/header.php');
     <div class="col-md-6 mx-auto">
         <h2>Add User</h2>
         <?php include('../../includes/alert.php'); ?>
-        <form action="store.php" method="POST" enctype="multipart/form-data" novalidate>
+        <!-- HTML FORM: add user with a role and optional photo, sent to store.php -->
+        <form action="store.php" method="POST" enctype="multipart/form-data" class="form-card" novalidate>
             <div class="mb-3">
                 <label for="name" class="form-label">name</label>
                 <input type="text" class="form-control" id="name" name="name"
-                    value="<?php if (isset($_SESSION['regName'])) echo $_SESSION['regName']; ?>">
+                    value="<?php if (isset($_SESSION['regName'])) echo htmlspecialchars($_SESSION['regName']); ?>">
             </div>
             <div class="mb-3">
                 <label for="email" class="form-label">email</label>
                 <input type="text" class="form-control" id="email" name="email"
-                    value="<?php if (isset($_SESSION['regEmail'])) echo $_SESSION['regEmail']; ?>">
+                    value="<?php if (isset($_SESSION['regEmail'])) echo htmlspecialchars($_SESSION['regEmail']); ?>">
             </div>
             <div class="mb-3">
                 <label for="password" class="form-label">password</label>
@@ -41,6 +43,7 @@ include('../../includes/header.php');
     </div>
 </div>
 <?php
+// UNSET: forget the typed name and email
 unset($_SESSION['regName'], $_SESSION['regEmail']);
 include('../../includes/footer.php');
 ?>

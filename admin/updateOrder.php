@@ -1,5 +1,6 @@
 <?php
 
+// USE + INCLUDES: PHPMailer and FPDF libraries, database, functions, admin only
 use PHPMailer\PHPMailer\PHPMailer;
 
 session_start();
@@ -11,10 +12,18 @@ require '../PHPMailer/src/PHPMailer.php';
 require '../PHPMailer/src/SMTP.php';
 require '../fpdf/fpdf.php';
 
+// IF block: only the update status form can open this script
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: orders.php");
+    exit();
+}
+
+// VARIABLES: read the form
 $order_id = (int)$_POST['order_id'];
 $status = trim($_POST['status']);
 $back = "orderDetails.php?id={$order_id}";
 
+// IF block (validation): the status must be one of the five
 $statuses = array('pending', 'processing', 'shipped', 'completed', 'cancelled');
 if (!in_array($status, $statuses)) {
     $_SESSION['message'] = 'please choose a status';
@@ -22,6 +31,7 @@ if (!in_array($status, $statuses)) {
     exit();
 }
 
+// SELECT query + IF blocks: the order must exist and must not be cancelled
 $sql = "SELECT status FROM orders WHERE order_id = ? LIMIT 1";
 $order = mysqli_fetch_assoc(mysqli_execute_query($conn, $sql, [$order_id]));
 if (!$order) {
@@ -35,7 +45,7 @@ if ($order['status'] === 'cancelled') {
     exit();
 }
 
-// update the status (and return the items to stock when the order is cancelled)
+// TRY-CATCH block (TRANSACTION): update the status, return the stock if cancelled
 try {
     mysqli_begin_transaction($conn);
 
@@ -44,6 +54,7 @@ try {
     mysqli_stmt_bind_param($stmt1, 'si', $status, $order_id);
     mysqli_stmt_execute($stmt1);
 
+    // IF block + prepared UPDATE: put the items back into stock
     if ($status === 'cancelled') {
         $q2 = 'UPDATE stock s INNER JOIN order_items oi ON oi.product_id = s.product_id SET s.quantity = s.quantity + oi.quantity WHERE oi.order_id = ?';
         $stmt2 = mysqli_prepare($conn, $q2);
@@ -59,13 +70,20 @@ try {
     exit();
 }
 
-// the customer and the products of the order (from the order_details_view view)
-$sql = "SELECT name, email, addressline, town, zipcode, phone, date_placed, product_name, brand, size, quantity, price, subtotal FROM order_details_view WHERE order_id = ?";
+// SELECT query (view): the customer and products for the receipt and email
+$sql = "SELECT name, email, addressline, town, zipcode, phone, payment_method, reference_no, date_placed, product_name, brand, size, quantity, price, subtotal FROM order_details_view WHERE order_id = ?";
 $result = mysqli_execute_query($conn, $sql, [$order_id]);
 $items = mysqli_fetch_all($result, MYSQLI_ASSOC);
 $customer = $items[0];
 
-// ---------- the PDF receipt ----------
+// IF-ELSE block: the payment line for the receipt and the email
+if ($customer['payment_method'] === 'online') {
+    $paymentText = "Online payment, reference no. {$customer['reference_no']}";
+} else {
+    $paymentText = 'Cash on delivery';
+}
+
+// FPDF: build the PDF receipt
 $pdf = new FPDF();
 $pdf->AddPage();
 $pdf->SetFont('Helvetica', 'B', 18);
@@ -79,6 +97,7 @@ $pdf->Cell(0, 6, "Status: {$status}", 0, 1);
 $pdf->Cell(0, 6, "Customer: {$customer['name']} ({$customer['email']})", 0, 1);
 $pdf->Cell(0, 6, "Deliver to: {$customer['addressline']}, {$customer['town']} {$customer['zipcode']}", 0, 1);
 $pdf->Cell(0, 6, "Phone: {$customer['phone']}", 0, 1);
+$pdf->Cell(0, 6, "Payment: {$paymentText}", 0, 1);
 $pdf->Ln(4);
 
 $pdf->SetFont('Helvetica', 'B', 11);
@@ -88,6 +107,7 @@ $pdf->Cell(40, 8, 'Price', 1, 0, 'R');
 $pdf->Cell(45, 8, 'Subtotal', 1, 1, 'R');
 $pdf->SetFont('Helvetica', '', 11);
 
+// FOREACH loop: one PDF row and one email row per product, adds up the grand total
 $grandTotal = 0;
 $rows = '';
 foreach ($items as $item) {
@@ -97,7 +117,6 @@ foreach ($items as $item) {
     $pdf->Cell(40, 8, 'PHP ' . number_format($item['price'], 2), 1, 0, 'R');
     $pdf->Cell(45, 8, 'PHP ' . number_format($item['subtotal'], 2), 1, 1, 'R');
 
-    // the same rows for the email
     $rows .= "<tr>
         <td>{$item['product_name']} ({$item['size']})</td>
         <td align='center'>{$item['quantity']}</td>
@@ -112,10 +131,10 @@ $pdf->Cell(45, 8, 'PHP ' . number_format($grandTotal, 2), 1, 1, 'R');
 $pdf->Ln(6);
 $pdf->SetFont('Helvetica', '', 10);
 $pdf->Cell(0, 6, 'Thank you for shopping at Veloura!', 0, 1);
-// 'S' = return the PDF as a string instead of showing it, so it can be attached to the email
+// OUTPUT 'S': return the PDF as a string so it can be attached to the email
 $pdfFile = $pdf->Output('S');
 
-// ---------- the email (sent through Mailtrap) ----------
+// IF block: no Mailtrap settings, so skip the email
 if (!file_exists('../includes/mail_config.php')) {
     $_SESSION['success'] = "order #{$order_id} is now {$status}";
     $_SESSION['message'] = 'the email was not sent: copy includes/mail_config.example.php to includes/mail_config.php and put your Mailtrap login in it';
@@ -124,8 +143,8 @@ if (!file_exists('../includes/mail_config.php')) {
 }
 include('../includes/mail_config.php');
 
+// PHPMAILER: SMTP server settings from mail_config.php
 $mail = new PHPMailer();
-// Server settings
 $mail->isSMTP();
 $mail->Host = SMTP_HOST;
 $mail->SMTPAuth = true;
@@ -133,15 +152,16 @@ $mail->Port = SMTP_PORT;
 $mail->Username = SMTP_USERNAME;
 $mail->Password = SMTP_PASSWORD;
 
-// Recipients
+// PHPMAILER: sender and recipient
 $mail->setFrom(MAIL_FROM, 'Veloura');
 $mail->addAddress($customer['email'], $customer['name']);
 
-// Content
+// PHPMAILER: subject, HTML body with the order table, and the PDF attachment
 $mail->isHTML(true);
 $mail->Subject = "Your order #{$order_id} is now {$status}";
 $mail->Body = "<p>Hi {$customer['name']},</p>
     <p>The status of your order <strong>#{$order_id}</strong> is now <strong>{$status}</strong>.</p>
+    <p>Payment: {$paymentText}</p>
     <table border='1' cellpadding='6' cellspacing='0'>
         <tr><th>Product</th><th>Quantity</th><th>Price</th><th>Subtotal</th></tr>
         {$rows}
@@ -152,6 +172,7 @@ $mail->Body = "<p>Hi {$customer['name']},</p>
 $mail->AltBody = "The status of your order #{$order_id} is now {$status}. Grand total: PHP " . number_format($grandTotal, 2);
 $mail->addStringAttachment($pdfFile, "receipt-order-{$order_id}.pdf");
 
+// IF-ELSE block: send the email and show the result
 if ($mail->send()) {
     $_SESSION['success'] = "order #{$order_id} is now {$status}. an email with the PDF receipt was sent to {$customer['email']}";
 } else {

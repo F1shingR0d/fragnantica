@@ -1,12 +1,14 @@
 <?php
+// SESSION + INCLUDES: start the session, connect, admin only
 session_start();
 include('../../includes/config.php');
 include('../../includes/adminCheck.php');
 
-// activate or deactivate a user. a deactivated user cannot login
+// VARIABLES: the user id and the new status from the link
 $user_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-$status = $_GET['status'];
+$status = $_GET['status'] ?? '';
 
+// IF-ELSE IF-ELSE block: check the request, then activate or deactivate (a deactivated user cannot log in)
 if (!$user_id || ($status !== 'active' && $status !== 'inactive')) {
     $_SESSION['message'] = 'invalid request';
 } else if ($user_id == $_SESSION['user_id']) {

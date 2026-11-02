@@ -1,8 +1,16 @@
 <?php
+// SESSION + INCLUDES: start the session, connect to the database, load functions
 session_start();
 include("../includes/config.php");
 include("../includes/functions.php");
 
+// IF block: only the registration form can open this script
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: register.php");
+    exit();
+}
+
+// VARIABLES: read the form and remember the typed name and email
 $name = trim(strip_tags($_POST['name']));
 $email = trim($_POST['email']);
 $password = trim($_POST['password']);
@@ -10,7 +18,7 @@ $confirmPass = trim($_POST['confirmPass']);
 $_SESSION['regName'] = $name;
 $_SESSION['regEmail'] = $email;
 
-//validation
+// IF-ELSE IF blocks (validation): name, email format, password length, matching passwords
 if ($name === '') {
     $_SESSION['message'] = 'please enter your name';
     header("Location: register.php");
@@ -29,6 +37,7 @@ if ($name === '') {
     exit();
 }
 
+// IF block + SELECT query: stop if the email is already registered
 $result = mysqli_execute_query($conn, "SELECT user_id FROM users WHERE email = ? LIMIT 1", [$email]);
 if (mysqli_num_rows($result) > 0) {
     $_SESSION['message'] = 'this email is already registered';
@@ -36,7 +45,7 @@ if (mysqli_num_rows($result) > 0) {
     exit();
 }
 
-// the photo is optional
+// IF block: save the optional profile photo if it is a JPG or PNG
 $target = null;
 if (isset($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE) {
     if (isImage($_FILES['photo']['type'])) {
@@ -48,6 +57,7 @@ if (isset($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE)
     }
 }
 
+// TRY-CATCH block + prepared INSERT: hash the password and save the new user
 try {
     $password = password_hash($password, PASSWORD_BCRYPT);
 
